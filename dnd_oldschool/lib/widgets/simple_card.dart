@@ -7,7 +7,7 @@ final String subtitle;
 final VoidCallback? onTap;
 
 
-const SimpleCard({Key? key, required this.title, required this.subtitle, this.onTap}) : super(key: key);
+const SimpleCard({super.key, required this.title, required this.subtitle, this.onTap});
 
 
 @override

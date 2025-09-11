@@ -7,7 +7,7 @@ final String? id;
 final String? monsterName;
 
 
-const MonsterDetailPage({Key? key, this.id, this.monsterName}) : super(key: key);
+const MonsterDetailPage({super.key, this.id, this.monsterName});
 
 
 @override

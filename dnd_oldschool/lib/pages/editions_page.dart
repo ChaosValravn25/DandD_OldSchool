@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 
 class EditionsPage extends StatelessWidget {
-const EditionsPage({Key? key}) : super(key: key);
+const EditionsPage({super.key});
 
 
 final List<String> editions = const ['OD&D', 'AD&D 1e', 'AD&D 2e', '3e', '3.5e'];

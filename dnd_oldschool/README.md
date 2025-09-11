@@ -1,16 +1,38 @@
-# dnd_oldschool
 
-A new Flutter project.
+# Project Title: D&D OldSchool
 
-## Getting Started
+Integrante: Ivonne Santander soto
 
-This project is a starting point for a Flutter application.
+Asignatura: Programación de Dispositivos Móviles
 
-A few resources to get you started if this is your first Flutter project:
+Matricula: 2019479010
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+D&D OldSchool es una aplicación móvil desarrollada con Flutter que funciona como en organiza información de las ediciones clásicas de Dungeons & Dragons (desde OD&D, AD&D 1e y 2e, hasta 3.5e, excluyendo la 5e).
+Permitirá explorar:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+ - Reglas antiguas organizadas.
+ 
+ - Descripciones de monstruos, razas y personajes clásicos.
+
+ - Módulos de aventuras antiguas.
+
+ - Material de ambientación (universo, deidades, aleaciones, objetos mágicos).
+
+El objetivo es entregar una experiencia wiki-nostálgica para jugadores que quieran revivir la vieja escuela de D&D.
+
+
+## Tecnologías utilizadas
+
+- Flutter 3.x
+
+- Dart
+
+- Material Design
+
+- Navigator para navegación
+
+- Widgets personalizados (Card, ListView.builder, SvgPicture)
+
+- flutter_svg para iconos en formato SVG
+
+

@@ -3,19 +3,19 @@ import '../app_router.dart';
 
 
 class SplashPage extends StatefulWidget {
-const SplashPage({Key? key}) : super(key: key);
+  const SplashPage({super.key});
 
 
-@override
-State<SplashPage> createState() => _SplashPageState();
+    @override
+  State<SplashPage> createState() => _SplashPageState();
 }
 
 
 class _SplashPageState extends State<SplashPage> {
-@override
-void initState() {
-super.initState();
-_navigateToHome();
+  @override
+  void initState() {
+    super.initState();
+    _navigateToHome();
 }
 
 
@@ -28,19 +28,37 @@ Navigator.of(context).pushReplacementNamed(AppRouter.home);
 
 @override
 Widget build(BuildContext context) {
-return Scaffold(
-body: Center(
-child: Column(
-mainAxisSize: MainAxisSize.min,
-children: const [
-Icon(Icons.shield, size: 96),
-SizedBox(height: 16),
-Text('D&D OldSchool', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-SizedBox(height: 8),
-Text('Compendium', style: TextStyle(fontSize: 16)),
-],
-),
-),
+  return Scaffold(
+  body: Container(
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Colors.black, Colors.red],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ),
+    ),
+    child: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            'assets/images/Dungeons-and-Dragons-Logo-2000.png',
+            width: 220,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'OldSchool Compendium',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    ),
+  ),
 );
 }
 }

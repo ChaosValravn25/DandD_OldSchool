@@ -4,7 +4,7 @@ import '../app_router.dart';
 
 
 class MonstersListPage extends StatelessWidget {
-const MonstersListPage({Key? key}) : super(key: key);
+const MonstersListPage({super.key});
 
 
 @override
