@@ -15,26 +15,26 @@ static const String monsterDetail = '/monster_detail';
 
 
 static Route<dynamic> generateRoute(RouteSettings settings) {
-switch (settings.name) {
-case splash:
-return MaterialPageRoute(builder: (_) => const SplashPage());
-case home:
-return MaterialPageRoute(builder: (_) => const HomePage());
-case editions:
-return MaterialPageRoute(builder: (_) => const EditionsPage());
-case monsters:
-return MaterialPageRoute(builder: (_) => const MonstersListPage());
-case monsterDetail:
-final args = settings.arguments as Map<String, dynamic>?;
-return MaterialPageRoute(
-builder: (_) => MonsterDetailPage(id: args?['id'], monsterName: args?['name']),
-);
-default:
-return MaterialPageRoute(
-builder: (_) => const Scaffold(
-body: Center(child: Text('Ruta no encontrada')),
-),
-);
-}
-}
+    switch (settings.name) {
+      case splash:
+    return MaterialPageRoute(builder: (_) => const SplashPage());
+      case home:
+    return MaterialPageRoute(builder: (_) => const HomePage());
+      case editions:
+    return MaterialPageRoute(builder: (_) => const EditionsPage());
+      case monsters:
+    return MaterialPageRoute(builder: (_) => const MonstersListPage());
+      case monsterDetail:
+    final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+        builder: (_) => MonsterDetailPage(id: args?['id'], monsterName: args?['name']),
+        );
+  default:
+      return MaterialPageRoute(
+            builder: (_) => const Scaffold(
+            body: Center(child: Text('Ruta no encontrada')),
+        ),
+      );
+    }
+  }
 }
