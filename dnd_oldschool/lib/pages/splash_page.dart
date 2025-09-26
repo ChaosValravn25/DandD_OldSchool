@@ -48,7 +48,7 @@ Widget build(BuildContext context) {
           ),
           const SizedBox(height: 16),
           const Text(
-            'OldSchool Compendium',
+            'D&D OldSchool',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
