@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-
+// EditionsPage: muestra una lista de ediciones antiguas de D&D
 class EditionsPage extends StatelessWidget {
 const EditionsPage({super.key});
 

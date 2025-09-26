@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_router.dart';
 
-
+// Punto de entrada principal de la aplicación
 void main() {
 runApp(const MyApp());
 }
@@ -25,7 +25,7 @@ backgroundColor: Colors.brown,
 ),
 ),
 initialRoute: AppRouter.splash,
-onGenerateRoute: AppRouter.generateRoute,
+onGenerateRoute: AppRouter.generateRoute,// Maneja la generación de rutas
 );
 }
 }

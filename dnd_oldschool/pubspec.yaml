@@ -60,6 +60,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/Dungeons-and-Dragons-Logo-2000.png
+    - assets/images/Rat.png
+    - assets/images/Skeleton1e.png
     
 
   # An image asset can refer to one or more resolution-specific "variants", see

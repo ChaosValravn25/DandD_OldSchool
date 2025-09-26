@@ -5,7 +5,7 @@ import 'pages/editions_page.dart';
 import 'pages/monsters_list_page.dart';
 import 'pages/monster_detail_page.dart';
 
-
+// Define las rutas de la aplicación
 class AppRouter {
 static const String splash = '/';
 static const String home = '/home';
@@ -13,7 +13,7 @@ static const String editions = '/editions';
 static const String monsters = '/monsters';
 static const String monsterDetail = '/monster_detail';
 
-
+// Genera las rutas basadas en el nombre
 static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case splash:
@@ -25,7 +25,7 @@ static Route<dynamic> generateRoute(RouteSettings settings) {
       case monsters:
     return MaterialPageRoute(builder: (_) => const MonstersListPage());
       case monsterDetail:
-    final args = settings.arguments as Map<String, dynamic>?;
+    final args = settings.arguments as Map<String, dynamic>?;// Cast de los argumentos
         return MaterialPageRoute(
         builder: (_) => MonsterDetailPage(id: args?['id'], monsterName: args?['name']),
         );

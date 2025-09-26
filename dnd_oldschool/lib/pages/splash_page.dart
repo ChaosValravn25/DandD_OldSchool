@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_router.dart';
 
-
+// SplashPage: pantalla de bienvenida con logo y navegación automática al Home
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 

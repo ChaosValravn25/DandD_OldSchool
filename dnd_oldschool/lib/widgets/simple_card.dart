@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-
+// SimpleCard: una tarjeta sencilla con título, subtítulo y acción al tocar
 class SimpleCard extends StatelessWidget {
 final String title;
 final String subtitle;
