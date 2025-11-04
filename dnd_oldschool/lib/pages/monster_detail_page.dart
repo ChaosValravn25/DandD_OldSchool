@@ -23,7 +23,7 @@ class MonsterDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.asset(
-              monster.imagePath, // <-- ahora usa la imagen del modelo
+              monster.imagePath ?? 'assets/default_image.png', // <-- ahora usa la imagen del modelo
               width: double.infinity,
               height: 160,
               fit: BoxFit.contain,

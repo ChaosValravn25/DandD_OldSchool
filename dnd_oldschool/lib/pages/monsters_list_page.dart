@@ -18,7 +18,7 @@ class MonstersListPage extends StatelessWidget {
           final m = monsters[index];
           return ListTile(
             leading: Image.asset(
-              m.imagePath, // <-- ahora usa la imagen del modelo
+              m.imagePath ?? 'assets/images/default_monster.png', // Provide a default image path
               width: 48,
               height: 48,
               fit: BoxFit.contain,
