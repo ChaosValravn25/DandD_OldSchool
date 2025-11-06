@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/preferences_service.dart';
+import '../providers/theme_provider.dart';
 
 class PreferencesPage extends StatefulWidget {
   const PreferencesPage({super.key});
@@ -12,7 +14,6 @@ class _PreferencesPageState extends State<PreferencesPage> {
   final _prefs = PreferencesService.instance;
   
   String _selectedEdition = 'Todas';
-  String _selectedTheme = 'parchment';
   bool _showImages = true;
   String _selectedSort = 'name_asc';
   bool _showFavoritesOnly = false;
@@ -28,7 +29,6 @@ class _PreferencesPageState extends State<PreferencesPage> {
   Future<void> _loadPreferences() async {
     setState(() {
       _selectedEdition = _prefs.defaultEdition;
-      _selectedTheme = _prefs.theme;
       _showImages = _prefs.showImages;
       _selectedSort = _prefs.defaultSort;
       _showFavoritesOnly = _prefs.showFavoritesOnly;
@@ -39,6 +39,8 @@ class _PreferencesPageState extends State<PreferencesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Preferencias'),
@@ -65,8 +67,9 @@ class _PreferencesPageState extends State<PreferencesPage> {
                   ],
                 ),
               );
-              if (confirm == true) {
+              if (confirm == true && mounted) {
                 await _prefs.resetAll();
+                await themeProvider.setTheme('parchment');
                 await _loadPreferences();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -82,6 +85,98 @@ class _PreferencesPageState extends State<PreferencesPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Sección: Apariencia
+          const Text(
+            '🎨 Apariencia',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+
+          // Selector de tema con preview
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.palette),
+                  title: const Text('Tema de la aplicación'),
+                  subtitle: Text(_getThemeName(themeProvider.currentTheme)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
+                    children: [
+                      _ThemeOption(
+                        label: '📜 Pergamino',
+                        description: 'Tema clásico estilo D&D',
+                        isSelected: themeProvider.isParchmentMode,
+                        color: const Color(0xFF8B4513),
+                        onTap: () => themeProvider.setTheme('parchment'),
+                      ),
+                      const SizedBox(height: 8),
+                      _ThemeOption(
+                        label: '☀️ Claro',
+                        description: 'Tema claro y limpio',
+                        isSelected: themeProvider.isLightMode,
+                        color: Colors.brown,
+                        onTap: () => themeProvider.setTheme('light'),
+                      ),
+                      const SizedBox(height: 8),
+                      _ThemeOption(
+                        label: '🌙 Oscuro',
+                        description: 'Tema oscuro para ambientes con poca luz',
+                        isSelected: themeProvider.isDarkMode,
+                        color: const Color(0xFF2C1810),
+                        onTap: () => themeProvider.setTheme('dark'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Tamaño de fuente
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.format_size),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Tamaño de fuente: ${_fontSize.toInt()}pt',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  Slider(
+                    value: _fontSize,
+                    min: 12,
+                    max: 20,
+                    divisions: 8,
+                    label: '${_fontSize.toInt()}pt',
+                    onChanged: (value) {
+                      setState(() => _fontSize = value);
+                    },
+                    onChangeEnd: (value) async {
+                      await _prefs.setFontSize(value);
+                    },
+                  ),
+                  Text(
+                    'Vista previa del tamaño de texto',
+                    style: TextStyle(fontSize: _fontSize),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
           // Sección: General
           const Text(
             '⚙️ General',
@@ -123,39 +218,6 @@ class _PreferencesPageState extends State<PreferencesPage> {
               },
             ),
           ),
-          const SizedBox(height: 8),
-
-          // Tema
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.palette),
-              title: const Text('Tema de la aplicación'),
-              subtitle: Text(_getThemeName(_selectedTheme)),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () async {
-                final result = await showDialog<String>(
-                  context: context,
-                  builder: (context) => SimpleDialog(
-                    title: const Text('Seleccionar tema'),
-                    children: [
-                      {'value': 'light', 'name': 'Claro'},
-                      {'value': 'dark', 'name': 'Oscuro'},
-                      {'value': 'parchment', 'name': 'Pergamino'},
-                    ].map((theme) {
-                      return SimpleDialogOption(
-                        onPressed: () => Navigator.pop(context, theme['value']),
-                        child: Text(theme['name']!),
-                      );
-                    }).toList(),
-                  ),
-                );
-                if (result != null) {
-                  await _prefs.setTheme(result);
-                  setState(() => _selectedTheme = result);
-                }
-              },
-            ),
-          ),
           const SizedBox(height: 24),
 
           // Sección: Visualización
@@ -191,42 +253,6 @@ class _PreferencesPageState extends State<PreferencesPage> {
                 await _prefs.setShowFullDescription(value);
                 setState(() => _showFullDescription = value);
               },
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Tamaño de fuente
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.format_size),
-                      const SizedBox(width: 16),
-                      Text(
-                        'Tamaño de fuente: ${_fontSize.toInt()}pt',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  Slider(
-                    value: _fontSize,
-                    min: 12,
-                    max: 20,
-                    divisions: 8,
-                    label: '${_fontSize.toInt()}pt',
-                    onChanged: (value) {
-                      setState(() => _fontSize = value);
-                    },
-                    onChangeEnd: (value) async {
-                      await _prefs.setFontSize(value);
-                    },
-                  ),
-                ],
-              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -286,6 +312,15 @@ class _PreferencesPageState extends State<PreferencesPage> {
               },
             ),
           ),
+          
+          const SizedBox(height: 32),
+          
+          // Botón para probar cambio rápido de tema
+          OutlinedButton.icon(
+            onPressed: () => themeProvider.cycleTheme(),
+            icon: const Icon(Icons.brightness_6),
+            label: const Text('Cambiar Tema'),
+          ),
         ],
       ),
     );
@@ -294,11 +329,11 @@ class _PreferencesPageState extends State<PreferencesPage> {
   String _getThemeName(String theme) {
     switch (theme) {
       case 'light':
-        return 'Claro';
+        return '☀️ Claro';
       case 'dark':
-        return 'Oscuro';
+        return '🌙 Oscuro';
       case 'parchment':
-        return 'Pergamino';
+        return '📜 Pergamino';
       default:
         return 'Desconocido';
     }
@@ -319,5 +354,74 @@ class _PreferencesPageState extends State<PreferencesPage> {
       default:
         return 'Desconocido';
     }
+  }
+}
+
+// Widget auxiliar para opciones de tema
+class _ThemeOption extends StatelessWidget {
+  final String label;
+  final String description;
+  final bool isSelected;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ThemeOption({
+    required this.label,
+    required this.description,
+    required this.isSelected,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? color : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          color: isSelected ? color.withOpacity(0.1) : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? color : null,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle, color: color),
+          ],
+        ),
+      ),
+    );
   }
 }
