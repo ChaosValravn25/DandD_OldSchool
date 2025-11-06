@@ -76,6 +76,7 @@ flutter:
     - assets/images/Dungeons-and-Dragons-Logo-2000.png
     - assets/images/Rat.png
     - assets/images/Skeleton1e.png
+    - assets/data/rating_questions.json
     
 
   # An image asset can refer to one or more resolution-specific "variants", see
