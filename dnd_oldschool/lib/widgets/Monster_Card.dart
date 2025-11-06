@@ -9,7 +9,7 @@ class MonsterCard extends StatelessWidget {
   final VoidCallback onFavoriteToggle;
   final VoidCallback onShare;
 
-  const MonsterCard({
+  const MonsterCard({super.key, 
     required this.monster,
     required this.onTap,
     required this.onFavoriteToggle,

@@ -1,4 +1,5 @@
 /// Widget para acceso rápido
+library;
 import 'package:flutter/material.dart';
 class QuickAccessCard extends StatelessWidget {
   final IconData icon;
@@ -6,7 +7,7 @@ class QuickAccessCard extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const QuickAccessCard({
+  const QuickAccessCard({super.key, 
     required this.icon,
     required this.label,
     required this.color,

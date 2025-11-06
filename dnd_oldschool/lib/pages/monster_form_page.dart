@@ -127,7 +127,7 @@ class _MonsterFormPageState extends State<MonsterFormPage> {
             const SizedBox(height: 16),
             
             DropdownButtonFormField<String>(
-              value: _selectedEdition,
+              initialValue: _selectedEdition,
               decoration: const InputDecoration(
                 labelText: 'Edición *',
                 prefixIcon: Icon(Icons.history_edu),
@@ -138,7 +138,7 @@ class _MonsterFormPageState extends State<MonsterFormPage> {
             const SizedBox(height: 16),
             
             DropdownButtonFormField<String>(
-              value: _selectedType,
+              initialValue: _selectedType,
               decoration: const InputDecoration(
                 labelText: 'Tipo',
                 prefixIcon: Icon(Icons.category),
@@ -149,7 +149,7 @@ class _MonsterFormPageState extends State<MonsterFormPage> {
             const SizedBox(height: 16),
             
             DropdownButtonFormField<String>(
-              value: _selectedSize,
+              initialValue: _selectedSize,
               decoration: const InputDecoration(
                 labelText: 'Tamaño',
                 prefixIcon: Icon(Icons.photo_size_select_small),

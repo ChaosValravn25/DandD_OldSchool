@@ -6,11 +6,11 @@ class FilterChipList extends StatelessWidget {
   final Function(String) onSelectionChanged;
 
   const FilterChipList({
-    Key? key,
+    super.key,
     required this.options,
     required this.selectedOptions,
     required this.onSelectionChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

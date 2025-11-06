@@ -1,4 +1,5 @@
 /// Widget para cards de contenido
+library;
 import 'package:flutter/material.dart';
 
 class ContentCard extends StatelessWidget {
@@ -9,7 +10,7 @@ class ContentCard extends StatelessWidget {
   final bool enabled;
   final VoidCallback onTap;
 
-  const ContentCard({
+  const ContentCard({super.key, 
     required this.icon,
     required this.title,
     required this.subtitle,

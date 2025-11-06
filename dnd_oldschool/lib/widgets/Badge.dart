@@ -6,7 +6,7 @@ class CustomBadge extends StatelessWidget {
   final String label;
   final Color color;
 
-  const CustomBadge({
+  const CustomBadge({super.key, 
     required this.icon,
     required this.label,
     required this.color,

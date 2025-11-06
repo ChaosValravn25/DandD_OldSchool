@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class SearchBarCustom extends StatelessWidget {
   final Function(String) onSearch;
 
-  const SearchBarCustom({Key? key, required this.onSearch}) : super(key: key);
+  const SearchBarCustom({super.key, required this.onSearch});
 
   @override
   Widget build(BuildContext context) {
