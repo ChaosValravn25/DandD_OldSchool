@@ -4,37 +4,223 @@ import 'pages/home_page.dart';
 import 'pages/editions_page.dart';
 import 'pages/monsters_list_page.dart';
 import 'pages/monster_detail_page.dart';
+import 'pages/monster_form_page.dart';
+import 'pages/preferences_page.dart';
+import 'pages/rating_page.dart';
+import 'pages/about_page.dart';
 
-// Define las rutas de la aplicación
+/// Gestiona todas las rutas de navegación de la aplicación
 class AppRouter {
-static const String splash = '/';
-static const String home = '/home';
-static const String editions = '/editions';
-static const String monsters = '/monsters';
-static const String monsterDetail = '/monster_detail';
+  // ========== RUTAS PRINCIPALES ==========
+  static const String splash = '/';
+  static const String home = '/home';
+  
+  // ========== BESTIARIO ==========
+  static const String monsters = '/monsters';
+  static const String monsterDetail = '/monster_detail';
+  static const String monsterForm = '/monster_form';
+  
+  // ========== CONTENIDO ==========
+  static const String editions = '/editions';
+  static const String spells = '/spells';
+  static const String classes = '/classes';
+  static const String races = '/races';
+  static const String equipment = '/equipment';
+  static const String rules = '/rules';
+  
+  // ========== CONFIGURACIÓN Y EXTRAS ==========
+  static const String preferences = '/preferences';
+  static const String about = '/about';
+  static const String rating = '/rating';
 
-// Genera las rutas basadas en el nombre
-static Route<dynamic> generateRoute(RouteSettings settings) {
+  /// Genera las rutas basadas en el nombre
+  static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      // ========== RUTAS PRINCIPALES ==========
       case splash:
-    return MaterialPageRoute(builder: (_) => const SplashPage());
+        return MaterialPageRoute(builder: (_) => const SplashPage());
+      
       case home:
-    return MaterialPageRoute(builder: (_) => const HomePage());
-      case editions:
-    return MaterialPageRoute(builder: (_) => const EditionsPage());
+        return MaterialPageRoute(builder: (_) => const HomePage());
+      
+      // ========== BESTIARIO ==========
       case monsters:
-    return MaterialPageRoute(builder: (_) => const MonstersListPage());
+        return MaterialPageRoute(builder: (_) => const MonstersListPage());
+      
       case monsterDetail:
-    final args = settings.arguments as Map<String, dynamic>?;// Cast de los argumentos
+        final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-        builder: (_) => MonsterDetailPage(id: args?['id'], monsterName: args?['name']),
+          builder: (_) => MonsterDetailPage(
+            id: args?['id'],
+            monsterName: args?['name'],
+          ),
         );
-  default:
-      return MaterialPageRoute(
-            builder: (_) => const Scaffold(
-            body: Center(child: Text('Ruta no encontrada')),
-        ),
-      );
+      
+      case monsterForm:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => MonsterFormPage(
+            monster: args?['monster'],
+          ),
+        );
+      
+      // ========== CONTENIDO ==========
+      case editions:
+        return MaterialPageRoute(builder: (_) => const EditionsPage());
+      
+      case spells:
+        return MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.auto_fix_high, size: 64, color: Colors.purple),
+                  SizedBox(height: 16),
+                  Text(
+                    'Hechizos',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text('Próximamente...'),
+                ],
+              ),
+            ),
+          ),
+        );
+      
+      case classes:
+        return MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.shield, size: 64, color: Colors.blue),
+                  SizedBox(height: 16),
+                  Text(
+                    'Clases',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text('Próximamente...'),
+                ],
+              ),
+            ),
+          ),
+        );
+      
+      case races:
+        return MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.people, size: 64, color: Colors.green),
+                  SizedBox(height: 16),
+                  Text(
+                    'Razas',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text('Próximamente...'),
+                ],
+              ),
+            ),
+          ),
+        );
+      
+      case equipment:
+        return MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.shopping_bag, size: 64, color: Colors.orange),
+                  SizedBox(height: 16),
+                  Text(
+                    'Equipamiento',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text('Próximamente...'),
+                ],
+              ),
+            ),
+          ),
+        );
+      
+      case rules:
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            appBar: AppBar(title: const Text('Reglas Antiguas')),
+            body: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.menu_book, size: 64, color: Colors.brown),
+                  SizedBox(height: 16),
+                  Text(
+                    'Reglas por Edición',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text('Comparativas entre ediciones'),
+                  SizedBox(height: 8),
+                  Text('Próximamente...'),
+                ],
+              ),
+            ),
+          ),
+        );
+      
+      // ========== CONFIGURACIÓN Y EXTRAS ==========
+      case preferences:
+        return MaterialPageRoute(builder: (_) => const PreferencesPage());
+      
+      case about:
+        return MaterialPageRoute(builder: (_) => const AboutPage());
+      
+      case rating:
+        return MaterialPageRoute(builder: (_) => const RatingPage());
+      
+      // ========== RUTA NO ENCONTRADA ==========
+      default:
+        return MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(title: const Text('Error 404')),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 80,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Ruta no encontrada',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'La ruta "${settings.name}" no existe',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context).pushReplacementNamed(home),
+                    icon: const Icon(Icons.home),
+                    label: const Text('Volver al Inicio'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
     }
   }
 }
