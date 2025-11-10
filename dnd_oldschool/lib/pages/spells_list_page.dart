@@ -1,23 +1,38 @@
 import 'package:flutter/material.dart';
-
+import 'package:dnd_oldschool/models/spell.dart';
+import 'spell_detail_page.dart';
 class SpellsListPage extends StatelessWidget {
   const SpellsListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final spells = Spell.getSample();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Spells List'),
+        title: const Text('Hechizos'),
       ),
       body: ListView.builder(
-        itemCount: 0, // Replace with your spells list length
+        padding: const EdgeInsets.all(12),
+        itemCount: spells.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            title: Text('Spell Name'), // Replace with actual spell name
-            subtitle: Text('Level 1'), // Replace with actual spell level
-            onTap: () {
-              // Handle spell selection
-            },
+          final spell = spells[index];
+          return Card(
+            child: ListTile(
+              leading: CircleAvatar(
+                child: Text('${spell.level}'),
+              ),
+              title: Text(spell.name),
+              subtitle: Text('${spell.school} • ${spell.range}'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SpellDetailPage(spell: spell),
+                  ),
+                );
+              },
+            ),
           );
         },
       ),
