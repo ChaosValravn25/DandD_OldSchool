@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'pages/splash_page.dart';
 import 'pages/home_page.dart';
 import 'pages/editions_page.dart';
+import 'pages/edition_detail_page.dart';
 import 'pages/monsters_list_page.dart';
 import 'pages/monster_detail_page.dart';
 import 'pages/monster_form_page.dart';
 import 'pages/preferences_page.dart';
 import 'pages/rating_page.dart';
 import 'pages/about_page.dart';
+import 'pages/spells_list_page.dart';
+import 'pages/spell_detail_page.dart';
+import 'pages/classes_page.dart';
+import 'pages/races_page.dart';
+import 'pages/equipment_page.dart';
+import 'pages/rules_page.dart';
 
 /// Gestiona todas las rutas de navegación de la aplicación
 class AppRouter {
@@ -22,7 +29,9 @@ class AppRouter {
   
   // ========== CONTENIDO ==========
   static const String editions = '/editions';
+  static const String editionDetail = '/edition_detail';
   static const String spells = '/spells';
+  static const String spellDetail = '/spell_detail';
   static const String classes = '/classes';
   static const String races = '/races';
   static const String equipment = '/equipment';
@@ -68,113 +77,36 @@ class AppRouter {
       case editions:
         return MaterialPageRoute(builder: (_) => const EditionsPage());
       
-      case spells:
+      case editionDetail:
+        final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.auto_fix_high, size: 64, color: Colors.purple),
-                  SizedBox(height: 16),
-                  Text(
-                    'Hechizos',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text('Próximamente...'),
-                ],
-              ),
-            ),
+          builder: (_) => EditionDetailPage(
+            edition: args?['edition'],
+          ),
+        );
+      
+      case spells:
+        return MaterialPageRoute(builder: (_) => const SpellsListPage());
+      
+      case spellDetail:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => SpellDetailPage(
+            spell: args?['spell'],
           ),
         );
       
       case classes:
-        return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.shield, size: 64, color: Colors.blue),
-                  SizedBox(height: 16),
-                  Text(
-                    'Clases',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text('Próximamente...'),
-                ],
-              ),
-            ),
-          ),
-        );
+        return MaterialPageRoute(builder: (_) => const ClassesPage());
       
       case races:
-        return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.people, size: 64, color: Colors.green),
-                  SizedBox(height: 16),
-                  Text(
-                    'Razas',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text('Próximamente...'),
-                ],
-              ),
-            ),
-          ),
-        );
+        return MaterialPageRoute(builder: (_) => const RacesPage());
       
       case equipment:
-        return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.shopping_bag, size: 64, color: Colors.orange),
-                  SizedBox(height: 16),
-                  Text(
-                    'Equipamiento',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text('Próximamente...'),
-                ],
-              ),
-            ),
-          ),
-        );
+        return MaterialPageRoute(builder: (_) => const EquipmentPage());
       
       case rules:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            appBar: AppBar(title: const Text('Reglas Antiguas')),
-            body: const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.menu_book, size: 64, color: Colors.brown),
-                  SizedBox(height: 16),
-                  Text(
-                    'Reglas por Edición',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text('Comparativas entre ediciones'),
-                  SizedBox(height: 8),
-                  Text('Próximamente...'),
-                ],
-              ),
-            ),
-          ),
-        );
+        return MaterialPageRoute(builder: (_) => const RulesPage());
       
       // ========== CONFIGURACIÓN Y EXTRAS ==========
       case preferences:
