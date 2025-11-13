@@ -6,6 +6,8 @@ import 'services/preferences_service.dart';
 import 'providers/theme_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io';
+import 'services/database_helper.dart';
+import 'services/sync_service.dart';
 void main() async {
   // Asegurar que Flutter esté inicializado antes de usar plugins
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +16,15 @@ void main() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
    }
+
+  final db = DatabaseHelper.instance;
+  final sync = SyncService();
+
+  // Sincronizar solo si no hay datos
+  if (!await db.hasData()) {
+    await sync.syncMonsters();
+    // sync.syncSpells(), sync.syncClasses(), etc.
+  }
 
   // Inicializar servicio de preferencias
   await PreferencesService.instance.init();

@@ -1,6 +1,7 @@
 import 'package:dnd_oldschool/models/monster.dart';
 import 'package:flutter/material.dart';
 import 'Badge.dart';
+import 'dart:io';
 
 /// Widget de tarjeta de monstruo
 class MonsterCard extends StatelessWidget {
@@ -28,12 +29,12 @@ class MonsterCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Imagen
+              // IMAGEN LOCAL (Image.file)
               if (monster.imagePath != null)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    monster.imagePath!,
+                  child: Image.file(
+                    File(monster.imagePath!), // ← Archivo local
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,
@@ -67,12 +68,8 @@ class MonsterCard extends StatelessWidget {
                         ),
                         IconButton(
                           icon: Icon(
-                            monster.isFavorite
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: monster.isFavorite
-                                ? Colors.amber
-                                : Colors.grey,
+                            monster.isFavorite ? Icons.star : Icons.star_border,
+                            color: monster.isFavorite ? Colors.amber : Colors.grey,
                           ),
                           onPressed: onFavoriteToggle,
                           tooltip: 'Marcar como favorito',
@@ -135,3 +132,4 @@ class MonsterCard extends StatelessWidget {
     );
   }
 }
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/monster.dart';
+import 'dart:io';
 
 // MonsterDetailPage: muestra detalles completos de un monstruo específico
 class MonsterDetailPage extends StatelessWidget {
@@ -22,12 +23,32 @@ class MonsterDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
-              monster.imagePath ?? 'assets/default_image.png', // <-- ahora usa la imagen del modelo
-              width: double.infinity,
-              height: 160,
-              fit: BoxFit.contain,
-            ),
+            // IMAGEN LOCAL
+            if (monster.imagePath != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(monster.imagePath!),
+                  width: double.infinity,
+                  height: 160,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/default_image.png',
+                      width: double.infinity,
+                      height: 160,
+                      fit: BoxFit.contain,
+                    );
+                  },
+                ),
+              )
+            else
+              Image.asset(
+                'assets/default_image.png',
+                width: double.infinity,
+                height: 160,
+                fit: BoxFit.contain,
+              ),
             const SizedBox(height: 12),
             Text(
               monster.name,
