@@ -4,10 +4,17 @@ import 'app_router.dart';
 import 'providers/monster_provider.dart';
 import 'services/preferences_service.dart';
 import 'providers/theme_provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'dart:io';
 void main() async {
   // Asegurar que Flutter esté inicializado antes de usar plugins
   WidgetsFlutterBinding.ensureInitialized();
   
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+   }
+
   // Inicializar servicio de preferencias
   await PreferencesService.instance.init();
   
@@ -32,8 +39,8 @@ class MyApp extends StatelessWidget {
         ),
         
         // Aquí puedes agregar más providers en el futuro:
-        // ChangeNotifierProvider(create: (_) => SpellProvider()),
-        // ChangeNotifierProvider(create: (_) => CharacterProvider()),
+        //ChangeNotifierProvider(create: (_) => SpellProvider()),
+        //ChangeNotifierProvider(create: (_) => CharacterProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

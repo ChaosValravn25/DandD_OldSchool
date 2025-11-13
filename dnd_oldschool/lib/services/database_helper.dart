@@ -14,6 +14,13 @@ class DatabaseHelper {
   /// Obtiene la instancia de la base de datos
   Future<Database> get database async {
     if (_database != null) return _database!;
+
+    // Inicializar FFI para escritorio
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
     _database = await _initDB('dnd_oldschool.db');
     return _database!;
   }
