@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String _baseUrl = 'YOUR_BASE_URL_HERE'; // Replace with your API base URL
+  static const String _baseUrl = 'https://www.dnd5eapi.co/api/2014/'; // Replace with your API base URL
   
   final http.Client _client;
 
