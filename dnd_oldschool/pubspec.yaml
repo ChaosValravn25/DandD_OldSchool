@@ -84,6 +84,8 @@ flutter:
     - assets/images/Rat.png
     - assets/images/Skeleton1e.png
     - assets/data/rating_questions.json
+    - assets/images/placeholder_monster.png
+    - assets/default_image.png
     
 
   # An image asset can refer to one or more resolution-specific "variants", see
