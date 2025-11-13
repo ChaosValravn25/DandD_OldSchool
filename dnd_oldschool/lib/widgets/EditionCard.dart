@@ -4,7 +4,7 @@ class EditionCard extends StatelessWidget {
   final Edition edition;
   final VoidCallback onTap;
 
-  const EditionCard({
+  const EditionCard({super.key, 
     required this.edition,
     required this.onTap,
   });

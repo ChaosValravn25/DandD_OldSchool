@@ -4,7 +4,7 @@ class RuleComparisonCard extends StatelessWidget {
   final String title;
   final Map<String, String> rules;
 
-  const RuleComparisonCard({
+  const RuleComparisonCard({super.key, 
     required this.title,
     required this.rules,
   });

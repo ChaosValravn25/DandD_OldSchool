@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_router.dart';
 import '../providers/monster_provider.dart';
-import '../widgets/StatCard.dart';
-import '../widgets/QuickAccessCard.dart';
 import '../widgets/ContentCard.dart';
+import '../widgets/QuickAccessCard.dart';
+import '../widgets/StatCard.dart';
+
 /// HomePage: Pantalla principal con dashboard y navegación completa
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -126,36 +127,33 @@ class HomePage extends StatelessWidget {
             },
           ),
           
-          // Hechizos
+          // Hechizos - ✅ HABILITADO
           ListTile(
             leading: const Icon(Icons.auto_fix_high),
             title: const Text('Hechizos'),
-            subtitle: const Text('Próximamente'),
-            enabled: false,
+            subtitle: const Text('Magia arcana y divina'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRouter.spells);
             },
           ),
           
-          // Clases y Razas
+          // Clases y Razas - ✅ HABILITADO
           ListTile(
             leading: const Icon(Icons.shield),
             title: const Text('Clases y Razas'),
-            subtitle: const Text('Próximamente'),
-            enabled: false,
+            subtitle: const Text('Personajes jugables'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRouter.classes);
             },
           ),
           
-          // Equipamiento
+          // Equipamiento - ✅ HABILITADO
           ListTile(
             leading: const Icon(Icons.shopping_bag),
             title: const Text('Equipamiento'),
-            subtitle: const Text('Próximamente'),
-            enabled: false,
+            subtitle: const Text('Armas y armaduras'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRouter.equipment);
@@ -242,7 +240,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
- /// Estadísticas rápidas
+  /// Estadísticas rápidas
   Widget _buildQuickStats(BuildContext context) {
     return Consumer<MonsterProvider>(
       builder: (context, provider, child) {
@@ -311,38 +309,46 @@ class HomePage extends StatelessWidget {
   Widget _buildContentCards(BuildContext context) {
     return Column(
       children: [
+        // Hechizos - ✅ HABILITADO
         ContentCard(
           icon: Icons.auto_fix_high,
           title: 'Hechizos',
           subtitle: 'Magia de todas las ediciones',
           color: Colors.purple,
-          enabled: false,
+          enabled: true, // ✅ CAMBIADO A true
           onTap: () => Navigator.pushNamed(context, AppRouter.spells),
         ),
         const SizedBox(height: 8),
+        
+        // Clases y Razas - ✅ HABILITADO
         ContentCard(
           icon: Icons.shield,
           title: 'Clases y Razas',
           subtitle: 'Guerreros, magos, elfos y más',
           color: Colors.blue,
-          enabled: false,
+          enabled: true, // ✅ CAMBIADO A true
           onTap: () => Navigator.pushNamed(context, AppRouter.classes),
         ),
         const SizedBox(height: 8),
+        
+        // Equipamiento - ✅ HABILITADO
         ContentCard(
           icon: Icons.shopping_bag,
           title: 'Equipamiento',
           subtitle: 'Armas, armaduras y objetos mágicos',
           color: Colors.orange,
-          enabled: false,
+          enabled: true, // ✅ CAMBIADO A true
           onTap: () => Navigator.pushNamed(context, AppRouter.equipment),
         ),
         const SizedBox(height: 8),
+        
+        // Reglas Antiguas - ✅ YA ESTABA HABILITADO
         ContentCard(
           icon: Icons.menu_book,
           title: 'Reglas Antiguas',
           subtitle: 'Compara mecánicas entre ediciones',
           color: Colors.brown,
+          enabled: true, // Por defecto es true si no se especifica
           onTap: () => Navigator.pushNamed(context, AppRouter.rules),
         ),
       ],
