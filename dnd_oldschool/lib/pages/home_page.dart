@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_router.dart';
 import '../providers/monster_provider.dart';
-import '../widgets/ContentCard.dart';
-import '../widgets/QuickAccessCard.dart';
 import '../widgets/StatCard.dart';
+import '../widgets/QuickAccessCard.dart';
+import '../widgets/ContentCard.dart';
+
 
 /// HomePage: Pantalla principal con dashboard y navegación completa
 class HomePage extends StatelessWidget {
@@ -234,6 +235,54 @@ class HomePage extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            const Divider(),
+            // Botón de valoración destacado
+            InkWell(
+              onTap: () => Navigator.pushNamed(context, AppRouter.rating),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.star_rate,
+                        color: Colors.amber,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '¿Te gusta la app?',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            'Valora tu experiencia',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios, size: 16),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -350,6 +399,60 @@ class HomePage extends StatelessWidget {
           color: Colors.brown,
           enabled: true, // Por defecto es true si no se especifica
           onTap: () => Navigator.pushNamed(context, AppRouter.rules),
+        ),
+        const SizedBox(height: 16),
+        
+        // ⭐ VALORACIÓN - Card especial destacada
+        Card(
+          elevation: 3,
+          color: Colors.amber.shade50,
+          child: InkWell(
+            onTap: () => Navigator.pushNamed(context, AppRouter.rating),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.star_rate,
+                      size: 32,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '⭐ Valora la Aplicación',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Tu opinión nos ayuda a mejorar',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 20),
+                ],
+              ),
+            ),
+          ),
         ),
       ],
     );
