@@ -14,7 +14,7 @@ class ImageDownloader {
       final hash = md5.convert(utf8.encode(imageUrl)).toString().substring(0, 8);
       final fileName = '${monsterName.toLowerCase().replaceAll(' ', '_')}_$hash.png';
       final dir = await getApplicationDocumentsDirectory();
-      final filePath = p.join(dir.path, 'images', fileName);
+      final filePath = p.join(dir.path, 'image', fileName);
       final file = File(filePath);
 
       // Si ya existe y es válida, reutilizar
@@ -41,7 +41,7 @@ class ImageDownloader {
 
       // Validar Content-Type
       final contentType = response.headers.value('content-type') ?? '';
-      if (!contentType.startsWith('images/')) {
+      if (!contentType.startsWith('image/')) {
         print('No es imagen: $contentType');
         return null;
       }
