@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_router.dart';
 import '../providers/monster_provider.dart';
-import '../widgets/StatCard.dart';
+import '../widgets/Statcard.dart';
 import '../widgets/QuickAccessCard.dart';
 import '../widgets/ContentCard.dart';
-
 
 /// HomePage: Pantalla principal con dashboard y navegación completa
 class HomePage extends StatelessWidget {
@@ -181,6 +180,17 @@ class HomePage extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRouter.preferences);
+            },
+          ),
+          
+          // Sincronización API
+          ListTile(
+            leading: const Icon(Icons.cloud_sync),
+            title: const Text('Sincronizar API'),
+            subtitle: const Text('Descargar desde D&D 5e API'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppRouter.sync);
             },
           ),
           

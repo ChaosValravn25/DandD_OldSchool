@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'pages/splash_page.dart';
 import 'pages/home_page.dart';
@@ -15,8 +16,9 @@ import 'pages/classes_page.dart';
 import 'pages/races_page.dart';
 import 'pages/equipment_page.dart';
 import 'pages/rules_page.dart';
+import 'pages/sync_page.dart';
 
-/// Gestiona todas las rutas de navegación de la aplicación
+// Gestiona todas las rutas de navegación de la aplicación
 class AppRouter {
   // ========== RUTAS PRINCIPALES ==========
   static const String splash = '/';
@@ -41,6 +43,7 @@ class AppRouter {
   static const String preferences = '/preferences';
   static const String about = '/about';
   static const String rating = '/rating';
+  static const String sync = '/sync'; // 
 
   /// Genera las rutas basadas en el nombre
   static Route<dynamic> generateRoute(RouteSettings settings) {
