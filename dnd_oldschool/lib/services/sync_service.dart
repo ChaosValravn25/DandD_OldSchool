@@ -15,6 +15,8 @@ class SyncService {
 
   bool get isSyncing => _isSyncing;
   double get progress => _totalMonsters > 0 ? _syncedMonsters / _totalMonsters : 0.0;
+  int get syncedCount => _syncedMonsters;
+  int get totalCount => _totalMonsters;
 
   /// Sincroniza monstruos desde la API de D&D 5e
   Future<Map<String, dynamic>> syncMonsters({
@@ -33,6 +35,7 @@ class SyncService {
     
     try {
       // Obtener lista de monstruos
+      print('🔍 Consultando API de D&D 5e...');
       final data = await _api.get('monsters');
       final List results = data['results'] ?? [];
       
@@ -43,13 +46,15 @@ class SyncService {
 
       int successCount = 0;
       int errorCount = 0;
+      List<String> errors = [];
 
       for (var i = 0; i < monstersToSync.length; i++) {
         try {
           final monsterRef = monstersToSync[i];
           final slug = monsterRef['index'];
+          final name = monsterRef['name'] ?? slug;
           
-          print('🔍 Obteniendo detalles de: $slug');
+          print('🔍 [$i/${monstersToSync.length}] Obteniendo: $name');
           
           // Obtener detalles completos
           final detail = await _api.get('monsters/$slug');
@@ -63,15 +68,16 @@ class SyncService {
             
             if (existing == null) {
               await _db.createMonster(monster);
-              print('✅ Monstruo creado: ${monster.name}');
+              print('✅ Creado: ${monster.name}');
             } else {
               await _db.updateMonster(monster);
-              print('🔄 Monstruo actualizado: ${monster.name}');
+              print('🔄 Actualizado: ${monster.name}');
             }
             
             successCount++;
           } else {
             errorCount++;
+            errors.add('Error parseando: $name');
             print('❌ Error parseando: $slug');
           }
           
@@ -79,10 +85,12 @@ class SyncService {
           onProgress?.call(_syncedMonsters, _totalMonsters);
           
           // Pequeña pausa para no saturar la API
-          await Future.delayed(const Duration(milliseconds: 200));
+          await Future.delayed(const Duration(milliseconds: 300));
           
         } catch (e) {
           errorCount++;
+          final name = monstersToSync[i]['name'] ?? 'desconocido';
+          errors.add('$name: $e');
           print('❌ Error con monstruo: $e');
         }
       }
@@ -94,7 +102,8 @@ class SyncService {
         'total': monstersToSync.length,
         'synced': successCount,
         'errors': errorCount,
-        'message': 'Sincronización completada: $successCount éxitos, $errorCount errores',
+        'errorList': errors,
+        'message': 'Sincronización completada:\n✅ $successCount exitosos\n❌ $errorCount errores',
       };
       
     } catch (e) {
@@ -104,6 +113,9 @@ class SyncService {
       return {
         'success': false,
         'message': 'Error en sincronización: $e',
+        'total': 0,
+        'synced': 0,
+        'errors': 1,
       };
     }
   }
@@ -119,16 +131,17 @@ class SyncService {
       String? localPath;
       
       if (imageUrl != null) {
-        print('📷 Descargando imagen de: $name');
-        localPath = await ImageDownloader.downloadAndSave(imageUrl, name);
-        if (localPath != null) {
-          print('✅ Imagen guardada: $localPath');
-        } else {
-          print('⚠️ No se pudo descargar imagen para: $name');
+        try {
+          localPath = await ImageDownloader.downloadAndSave(imageUrl, name);
+          if (localPath != null) {
+            print('  📷 Imagen guardada');
+          }
+        } catch (e) {
+          print('  ⚠️ Error descargando imagen: $e');
         }
       }
 
-      // Convertir edición (5e → formato Old School para mostrar)
+      // Convertir edición (5e → formato compatible)
       final edition = '5e (2014)';
 
       return Monster(
@@ -171,6 +184,12 @@ class SyncService {
   String _formatDesc(Map<String, dynamic> data) {
     final desc = StringBuffer();
     
+    // Alineamiento
+    if (data['alignment'] != null) {
+      desc.writeln('Alineamiento: ${data['alignment']}');
+      desc.writeln();
+    }
+    
     // Descripción básica
     if (data['desc'] != null && data['desc'].toString().isNotEmpty) {
       desc.writeln(data['desc']);
@@ -181,9 +200,24 @@ class SyncService {
     if (data['special_abilities'] != null) {
       final abilities = data['special_abilities'] as List;
       if (abilities.isNotEmpty) {
-        desc.writeln('Habilidades Especiales:');
+        desc.writeln('═══ HABILIDADES ESPECIALES ═══');
         for (var sa in abilities) {
-          desc.writeln('• ${sa['name']}: ${sa['desc']}');
+          desc.writeln('• ${sa['name']}');
+          desc.writeln('  ${sa['desc']}');
+          desc.writeln();
+        }
+      }
+    }
+
+    // Acciones legendarias
+    if (data['legendary_actions'] != null) {
+      final legendary = data['legendary_actions'] as List;
+      if (legendary.isNotEmpty) {
+        desc.writeln('═══ ACCIONES LEGENDARIAS ═══');
+        for (var la in legendary) {
+          desc.writeln('• ${la['name']}');
+          desc.writeln('  ${la['desc']}');
+          desc.writeln();
         }
       }
     }
@@ -195,12 +229,33 @@ class SyncService {
   String _formatAbilities(Map<String, dynamic> data) {
     final abilities = StringBuffer();
     
+    // Atributos
+    if (data['strength'] != null) {
+      abilities.writeln('═══ ATRIBUTOS ═══');
+      abilities.writeln('FUE: ${data['strength']} | DES: ${data['dexterity']}');
+      abilities.writeln('CON: ${data['constitution']} | INT: ${data['intelligence']}');
+      abilities.writeln('SAB: ${data['wisdom']} | CAR: ${data['charisma']}');
+      abilities.writeln();
+    }
+    
+    // Velocidad
+    if (data['speed'] != null && data['speed'] is Map) {
+      abilities.writeln('═══ VELOCIDAD ═══');
+      final speed = data['speed'] as Map<String, dynamic>;
+      speed.forEach((key, value) {
+        abilities.writeln('$key: $value');
+      });
+      abilities.writeln();
+    }
+    
     // Acciones
     if (data['actions'] != null) {
       final actions = data['actions'] as List;
       if (actions.isNotEmpty) {
+        abilities.writeln('═══ ACCIONES ═══');
         for (var action in actions) {
-          abilities.writeln('${action['name']}: ${action['desc']}');
+          abilities.writeln('• ${action['name']}');
+          abilities.writeln('  ${action['desc']}');
           abilities.writeln();
         }
       }
@@ -210,9 +265,11 @@ class SyncService {
     if (data['reactions'] != null) {
       final reactions = data['reactions'] as List;
       if (reactions.isNotEmpty) {
-        abilities.writeln('Reacciones:');
+        abilities.writeln('═══ REACCIONES ═══');
         for (var reaction in reactions) {
-          abilities.writeln('${reaction['name']}: ${reaction['desc']}');
+          abilities.writeln('• ${reaction['name']}');
+          abilities.writeln('  ${reaction['desc']}');
+          abilities.writeln();
         }
       }
     }
@@ -222,29 +279,12 @@ class SyncService {
 
   /// Obtiene URL de imagen desde diferentes fuentes
   String? _getImageUrl(Map<String, dynamic> data) {
-    final name = data['name'] ?? '';
-    
     // Opción 1: Si la API proporciona imagen directamente
     if (data['image'] != null) {
       return 'https://www.dnd5eapi.co${data['image']}';
     }
     
-    // Opción 2: D&D Beyond (las mejores imágenes)
-    // Nota: Estas URLs son ejemplos, necesitas verificar que funcionen
-    final slug = data['index'] ?? name.toLowerCase().replaceAll(' ', '-');
-    
-    // Intenta varias fuentes
-    final sources = [
-      // D&D Beyond avatars
-      'https://www.dndbeyond.com/avatars/thumbnails/monsters/$slug.png',
-      // Roll20 tokens
-      'https://roll20.net/compendium/dnd5e/$slug/avatar.png',
-      // Unsplash como último recurso (imágenes genéricas)
-      'https://source.unsplash.com/400x400/?dragon,fantasy,$slug',
-    ];
-    
-    // Por ahora retorna la primera, pero podrías validar cuál funciona
-    return sources[0];
+    return null; // Sin imagen por defecto
   }
 
   /// Capitaliza la primera letra
@@ -253,11 +293,25 @@ class SyncService {
     return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
+  /// Cancela la sincronización en progreso
+  void cancelSync() {
+    if (_isSyncing) {
+      _isSyncing = false;
+      print('⚠️ Sincronización cancelada por el usuario');
+    }
+  }
+
   /// Limpia la caché de sincronización
   Future<void> clearSync() async {
     try {
-      // Aquí podrías eliminar monstruos sincronizados si quieres
-      print('🗑️ Limpieza de sincronización completada');
+      final monsters = await _db.readAllMonsters();
+      final apiMonsters = monsters.where((m) => m.edition.contains('5e')).toList();
+      
+      for (var monster in apiMonsters) {
+        await _db.deleteMonster(monster.id);
+      }
+      
+      print('🗑️ Limpiados ${apiMonsters.length} monstruos de la API');
     } catch (e) {
       print('❌ Error limpiando sincronización: $e');
     }
@@ -273,11 +327,40 @@ class SyncService {
         'total_monsters': monsters.length,
         'synced_from_api': syncedMonsters,
         'local_only': monsters.length - syncedMonsters,
+        'last_sync': null, // Podrías guardar esto en SharedPreferences
       };
     } catch (e) {
       return {
         'error': e.toString(),
       };
     }
+  }
+
+  /// Sincroniza un solo monstruo por su slug
+  Future<Monster?> syncSingleMonster(String slug) async {
+    try {
+      print('🔍 Obteniendo monstruo: $slug');
+      final detail = await _api.get('monsters/$slug');
+      final monster = await _parseMonster(detail);
+      
+      if (monster != null) {
+        final existing = await _db.readMonster(monster.id);
+        if (existing == null) {
+          await _db.createMonster(monster);
+        } else {
+          await _db.updateMonster(monster);
+        }
+        print('✅ Monstruo sincronizado: ${monster.name}');
+      }
+      
+      return monster;
+    } catch (e) {
+      print('❌ Error sincronizando monstruo: $e');
+      return null;
+    }
+  }
+
+  void dispose() {
+    _api.dispose();
   }
 }
