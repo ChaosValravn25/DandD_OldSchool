@@ -1,4 +1,5 @@
 /// lib/pages/classes_page.dart
+library;
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../models/character_class.dart';

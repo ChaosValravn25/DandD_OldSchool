@@ -23,7 +23,10 @@ void main() async {
   // Sincronizar solo si no hay datos
   if (!await db.hasData()) {
     await sync.syncMonsters();
-    // sync.syncSpells(), sync.syncClasses(), etc.
+    await sync.syncSpells(); 
+    await sync.syncClasses();
+    await sync.syncRaces();
+    await sync.syncEquipment();
   }
 
   // Inicializar servicio de preferencias

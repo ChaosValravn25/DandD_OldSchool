@@ -138,46 +138,76 @@ class ImageDownloader {
         'url': 'https://www.dnd5eapi.co/api/monsters/$index/image',
       },
       
-      // 2. Unsplash API v2 (reemplaza source.unsplash.com)
+       // 2. Pexels - Fotografías de fantasía de alta calidad
       {
-        'name': 'Unsplash Random',
-        'url': 'https://images.unsplash.com/photo-1589254065878-42c9da997008?w=400&h=400&fit=crop&q=80',
+        'name': 'Pexels Fantasy',
+        'url': 'https://images.pexels.com/photos/1616403/pexels-photo-1616403.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
       },
       
-      // 3. Picsum con seed para consistencia
+      // 3. UI Avatars - Genera avatares con iniciales del monstruo
       {
-        'name': 'Picsum Photos',
-        'url': 'https://picsum.photos/seed/$index/400/400',
+        'name': 'UI Avatars',
+        'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=8B0000&color=fff&bold=true&format=png',
       },
       
-      // 4. PlaceIMG (reemplazo de LoremFlickr)
+      // 4. DiceBear - Avatares de monstruos generados
       {
-        'name': 'PlaceIMG',
-        'url': 'https://placeimg.com/400/400/animals',
+        'name': 'DiceBear Monsters',
+        'url': 'https://api.dicebear.com/7.x/monsters/png?seed=$index&size=400',
       },
       
-      // 5. DummyImage como fallback
+      // 5. DiceBear - Avatares de criaturas
       {
-        'name': 'DummyImage',
-        'url': 'https://dummyimage.com/400x400/4a5568/ffffff&text=${nameEncoded.length > 20 ? nameEncoded.substring(0, 20) : nameEncoded}',
+        'name': 'DiceBear Creatures',
+        'url': 'https://api.dicebear.com/7.x/bottts/png?seed=$nameSlug&size=400&backgroundColor=8b4513',
       },
       
-      // 6. Placeholder generado
+      // 6. Boring Avatars - Estilo fantasía
       {
-        'name': 'Via Placeholder',
-        'url': 'https://via.placeholder.com/400x400/8B4513/FFFFFF?text=${nameEncoded.length > 15 ? nameEncoded.substring(0, 15) : nameEncoded}',
+        'name': 'Boring Avatars Beam',
+        'url': 'https://source.boringavatars.com/beam/400/$nameSlug?colors=8B0000,DC143C,B22222,CD5C5C,8B4513',
       },
       
-      // 7. RoboHash para imágenes únicas generadas
+      // 7. Boring Avatars - Estilo abstracto
       {
-        'name': 'RoboHash Monster',
-        'url': 'https://robohash.org/$index?set=set2&size=400x400',
+        'name': 'Boring Avatars Marble',
+        'url': 'https://source.boringavatars.com/marble/400/$index?colors=2C3E50,8E44AD,C0392B,D35400,16A085',
       },
       
-      // 8. Pravatar (genera avatares únicos)
+      // 8. RoboHash - Monstruos (set2 es perfecto para D&D)
       {
-        'name': 'Pravatar',
-        'url': 'https://i.pravatar.cc/400?u=$index',
+        'name': 'RoboHash Monsters',
+        'url': 'https://robohash.org/$nameSlug?set=set2&size=400x400&bgset=bg1',
+      },
+      
+      // 9. RoboHash - Robots (alternativa)
+      {
+        'name': 'RoboHash Robots',
+        'url': 'https://robohash.org/$index?set=set1&size=400x400&bgset=bg2',
+      },
+      
+      // 10. Adorable Avatars - Estilo pixel art
+      {
+        'name': 'Adorable Avatars',
+        'url': 'https://api.adorable.io/avatars/400/$nameSlug.png',
+      },
+      
+      // 11. Multiavatar - Avatares únicos por nombre
+      {
+        'name': 'Multiavatar',
+        'url': 'https://api.multiavatar.com/$nameSlug.png?apikey=public',
+      },
+      
+      // 12. Placeholder con temática D&D (texto)
+      {
+        'name': 'Placeholder D&D',
+        'url': 'https://placehold.co/400x400/8B0000/FFFFFF/png?text=${nameEncoded.length > 15 ? nameEncoded.substring(0, 15) : nameEncoded}&font=roboto',
+      },
+      
+      // 13. DummyImage con colores D&D
+      {
+        'name': 'DummyImage Fantasy',
+        'url': 'https://dummyimage.com/400x400/8B4513/FFD700&text=$nameSlug',
       },
     ];
   }
@@ -324,7 +354,7 @@ class ImageDownloader {
       if (!await imagesDir.exists()) return 0;
       
       final files = await imagesDir.list().toList();
-      return files.where((f) => f is File).length;
+      return files.whereType<File>().length;
     } catch (e) {
       return 0;
     }
