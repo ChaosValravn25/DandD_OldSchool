@@ -73,7 +73,7 @@ class SyncService {
 
         try {
           final detail = await _api.get('$section/$slug');
-          await _parseAndSave(section, detail);
+          await _parseAndSave(section, detail, name, slug);
           success++;
         } catch (e) {
           errors++;
@@ -92,21 +92,11 @@ class SyncService {
     return {'success': success, 'errors': errors, 'errorList': errorList};
   }
 
-  Future<void> _parseAndSave(String section, Map<String, dynamic> data) async {
+  // === _parseAndSave CORREGIDO CON MÚLTIPLES FUENTES ===
+  Future<void> _parseAndSave(String section, Map<String, dynamic> data, String name, String id) async {
     try {
-      final id = data['index'];
-      final name = data['name'];
-
-      String? imageUrl = await ImageDownloader.getUnsplashImageUrl('$name $section');
-      String? localPath;
-
-      if (imageUrl != null) {
-        try {
-          localPath = await ImageDownloader.downloadAndSave(imageUrl, name);
-        } catch (e) {
-          print('Error imagen: $e');
-        }
-      }
+      final localPath = await ImageDownloader.downloadFromMultipleSources(name, id);
+      final imageUrl = localPath != null ? 'file://$localPath' : null;
 
       switch (section) {
         case 'monsters':
@@ -156,7 +146,7 @@ class SyncService {
     }
   }
 
-  // === PARSERS ACTUALIZADOS CON TODOS LOS CAMPOS REQUERIDOS ===
+  // === TODOS LOS PARSERS RESTAURADOS ===
 
   Monster? _parseMonster(Map data, {String? imageUrl, String? imagePath}) {
     try {
@@ -311,7 +301,7 @@ SAB: ${data['wisdom']}  CAR: ${data['charisma']}
     return buf.toString();
   }
 
-  // === COLORES E ÍCONOS POR CLASE Y RAZA ===
+  // === COLORES E ÍCONOS ===
   Color _getClassColor(String index) {
     switch (index) {
       case 'fighter': return Colors.red;
@@ -410,7 +400,7 @@ SAB: ${data['wisdom']}  CAR: ${data['charisma']}
 
         try {
           final detail = await _api.get('monsters/$slug');
-          await _parseAndSave('monsters', detail);
+          await _parseAndSave('monsters', detail, name, slug);
           success++;
         } catch (e) {
           errors++;

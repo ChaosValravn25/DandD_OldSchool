@@ -1,7 +1,5 @@
 
 // lib/models/equipment.dart
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
 class Equipment {
   final String id;

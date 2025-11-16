@@ -1,6 +1,5 @@
 // lib/models/character_class.dart
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 class CharacterClass {
   final String id;
   final String name;
