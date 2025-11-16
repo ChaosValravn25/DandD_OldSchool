@@ -1,5 +1,4 @@
 // lib/services/sync_service.dart
-
 import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'image_downloader.dart';
@@ -23,6 +22,7 @@ class SyncService {
   int get syncedCount => _syncedItems;
   int get totalCount => _totalItems;
 
+  // === SINCRONIZACIÓN COMPLETA ===
   Future<Map<String, dynamic>> syncAll({Function(int, int)? onProgress}) async {
     if (_isSyncing) return {'success': false, 'message': 'Sincronización en progreso'};
 
@@ -57,7 +57,12 @@ class SyncService {
     }
   }
 
-  Future<Map<String, dynamic>> _syncSection(String section, {int? limit, Function(int, int)? onProgress}) async {
+  // === SINCRONIZACIÓN POR SECCIÓN ===
+  Future<Map<String, dynamic>> _syncSection(
+    String section, {
+    int? limit,
+    Function(int, int)? onProgress,
+  }) async {
     int success = 0, errors = 0;
     List<String> errorList = [];
 
@@ -92,8 +97,13 @@ class SyncService {
     return {'success': success, 'errors': errors, 'errorList': errorList};
   }
 
-  // === _parseAndSave CORREGIDO CON MÚLTIPLES FUENTES ===
-  Future<void> _parseAndSave(String section, Map<String, dynamic> data, String name, String id) async {
+  // === PARSE Y GUARDAR ===
+  Future<void> _parseAndSave(
+    String section,
+    Map<String, dynamic> data,
+    String name,
+    String id,
+  ) async {
     try {
       final localPath = await ImageDownloader.downloadFromMultipleSources(name, id);
       final imageUrl = localPath != null ? 'file://$localPath' : null;
@@ -146,7 +156,7 @@ class SyncService {
     }
   }
 
-  // === TODOS LOS PARSERS RESTAURADOS ===
+  // === PARSERS ===
 
   Monster? _parseMonster(Map data, {String? imageUrl, String? imagePath}) {
     try {
@@ -166,6 +176,7 @@ class SyncService {
         createdAt: DateTime.now(),
       );
     } catch (e) {
+      print('Error parseando monstruo: $e');
       return null;
     }
   }
@@ -175,13 +186,13 @@ class SyncService {
       id: data['index'],
       name: data['name'],
       edition: '5e',
-      level: data['level'],
-      school: data['school']['name'],
-      castingTime: data['casting_time'],
-      range: data['range'],
-      components: (data['components'] as List).join(', '),
-      duration: data['duration'],
-      description: (data['desc'] as List).join('\n'),
+      level: data['level'] ?? 0,
+      school: data['school']?['name'] ?? 'Unknown',
+      castingTime: data['casting_time'] ?? '—',
+      range: data['range'] ?? '—',
+      components: (data['components'] as List?)?.join(', ') ?? '—',
+      duration: data['duration'] ?? '—',
+      description: (data['desc'] as List?)?.join('\n\n') ?? 'Sin descripción',
       imageUrl: imageUrl,
       imagePath: imagePath,
       isFavorite: false,
@@ -201,11 +212,11 @@ class SyncService {
       hitDie: '1d$hitDie',
       primeRequisite: savingThrows.isNotEmpty ? savingThrows[0]['name'] : '—',
       allowedWeapons: proficiencies
-          .where((p) => p['name'].toString().contains('Weapon'))
+          .where((p) => p['name'].toString().toLowerCase().contains('weapon'))
           .map((p) => p['name'])
           .join(', '),
       allowedArmor: proficiencies
-          .where((p) => p['name'].toString().contains('Armor'))
+          .where((p) => p['name'].toString().toLowerCase().contains('armor'))
           .map((p) => p['name'])
           .join(', '),
       description: data['desc'] ?? 'Sin descripción',
@@ -227,13 +238,16 @@ class SyncService {
     final abilityMods = <String, int>{};
     if (data['ability_bonuses'] != null) {
       for (var bonus in data['ability_bonuses']) {
-        abilityMods[bonus['ability_score']['name']] = bonus['bonus'];
+        final abilityName = bonus['ability_score']?['name'] ?? 'Unknown';
+        abilityMods[abilityName] = bonus['bonus'] ?? 0;
       }
     }
 
     final specialAbilities = <String>[];
     if (data['traits'] != null) {
-      specialAbilities.addAll(data['traits'].map((t) => t['name']));
+      for (var trait in data['traits']) {
+        specialAbilities.add(trait['name'] ?? 'Unknown trait');
+      }
     }
 
     return Race(
@@ -242,7 +256,7 @@ class SyncService {
       edition: '5e',
       abilityMods: abilityMods,
       specialAbilities: specialAbilities,
-      description: data['desc'] ?? '',
+      description: data['desc'] ?? 'Sin descripción',
       color: _getRaceColor(data['index']),
       icon: _getRaceIcon(data['index']),
       imageUrl: imageUrl,
@@ -255,11 +269,12 @@ class SyncService {
   Equipment _parseEquipment(Map data, {String? imageUrl, String? imagePath}) {
     final cost = data['cost'];
     final ac = data['armor_class'];
+    
     return Equipment(
       id: data['index'],
       name: data['name'],
       edition: '5e',
-      type: data['equipment_category']['name'],
+      type: data['equipment_category']?['name'] ?? 'Unknown',
       cost: cost != null ? '${cost['quantity']} ${cost['unit']}' : '—',
       weight: data['weight']?.toString() ?? '—',
       damage: data['damage']?['damage_dice'],
@@ -268,7 +283,7 @@ class SyncService {
       acBonus: ac?['base'],
       strengthRequirement: ac?['strength_minimum']?.toString(),
       stealthDisadvantage: ac?['stealth_disadvantage'] == true,
-      description: (data['desc'] as List?)?.join('\n') ?? '',
+      description: (data['desc'] as List?)?.join('\n') ?? 'Sin descripción',
       imageUrl: imageUrl,
       imagePath: imagePath,
       isFavorite: false,
@@ -277,6 +292,7 @@ class SyncService {
   }
 
   // === UTILIDADES ===
+
   int? _extractDice(String? dice) {
     if (dice == null) return null;
     final match = RegExp(r'(\d+)d').firstMatch(dice);
@@ -301,14 +317,21 @@ SAB: ${data['wisdom']}  CAR: ${data['charisma']}
     return buf.toString();
   }
 
-  // === COLORES E ÍCONOS ===
   Color _getClassColor(String index) {
     switch (index) {
       case 'fighter': return Colors.red;
       case 'wizard': return Colors.purple;
       case 'rogue': return Colors.grey;
       case 'cleric': return Colors.yellow;
-      default: return Colors.blue;
+      case 'paladin': return Colors.blue;
+      case 'ranger': return Colors.green;
+      case 'barbarian': return Colors.orange;
+      case 'bard': return Colors.pink;
+      case 'druid': return Colors.brown;
+      case 'monk': return Colors.teal;
+      case 'sorcerer': return Colors.deepPurple;
+      case 'warlock': return Colors.indigo;
+      default: return Colors.blueGrey;
     }
   }
 
@@ -318,7 +341,15 @@ SAB: ${data['wisdom']}  CAR: ${data['charisma']}
       case 'wizard': return Icons.auto_awesome;
       case 'rogue': return Icons.visibility_off;
       case 'cleric': return Icons.healing;
-      default: return Icons.category;
+      case 'paladin': return Icons.security;
+      case 'ranger': return Icons.nature;
+      case 'barbarian': return Icons.fitness_center;
+      case 'bard': return Icons.music_note;
+      case 'druid': return Icons.eco;
+      case 'monk': return Icons.self_improvement;
+      case 'sorcerer': return Icons.bolt;
+      case 'warlock': return Icons.dark_mode;
+      default: return Icons.person;
     }
   }
 
@@ -328,7 +359,12 @@ SAB: ${data['wisdom']}  CAR: ${data['charisma']}
       case 'elf': return Colors.green;
       case 'dwarf': return Colors.orange;
       case 'halfling': return Colors.lightGreen;
-      default: return Colors.grey;
+      case 'dragonborn': return Colors.red;
+      case 'gnome': return Colors.purple;
+      case 'half-elf': return Colors.teal;
+      case 'half-orc': return Colors.grey;
+      case 'tiefling': return Colors.deepOrange;
+      default: return Colors.blueGrey;
     }
   }
 
@@ -338,46 +374,24 @@ SAB: ${data['wisdom']}  CAR: ${data['charisma']}
       case 'elf': return Icons.auto_awesome;
       case 'dwarf': return Icons.engineering;
       case 'halfling': return Icons.child_friendly;
+      case 'dragonborn': return Icons.whatshot;
+      case 'gnome': return Icons.lightbulb;
+      case 'half-elf': return Icons.people;
+      case 'half-orc': return Icons.fitness_center;
+      case 'tiefling': return Icons.local_fire_department;
       default: return Icons.groups;
     }
   }
 
-  // === MÉTODOS ADICIONALES ===
-  Future<Map<String, dynamic>> getSyncStats() async {
-    try {
-      final monsters = await _db.readAllMonsters();
-      final syncedMonsters = monsters.where((m) => m.edition.contains('5e')).length;
-      
-      return {
-        'total_monsters': monsters.length,
-        'synced_from_api': syncedMonsters,
-        'local_only': monsters.length - syncedMonsters,
-      };
-    } catch (e) {
-      return {'error': e.toString()};
-    }
-  }
-
-  Future<void> clearSync() async {
-    try {
-      final monsters = await _db.readAllMonsters();
-      final apiMonsters = monsters.where((m) => m.edition.contains('5e')).toList();
-      
-      for (var monster in apiMonsters) {
-        await _db.deleteMonster(monster.id);
-      }
-      
-      print('Limpiados ${apiMonsters.length} monstruos de la API');
-    } catch (e) {
-      print('Error limpiando: $e');
-    }
-  }
+  // === MÉTODOS PÚBLICOS INDIVIDUALES ===
 
   Future<Map<String, dynamic>> syncMonsters({
     int? limit,
     Function(int current, int total)? onProgress,
   }) async {
-    if (_isSyncing) return {'success': false, 'message': 'Sincronización en progreso'};
+    if (_isSyncing) {
+      return {'success': false, 'message': 'Sincronización en progreso'};
+    }
 
     _isSyncing = true;
     _totalItems = 0;
@@ -424,6 +438,54 @@ SAB: ${data['wisdom']}  CAR: ${data['charisma']}
     } catch (e) {
       _isSyncing = false;
       return {'success': false, 'message': 'Error: $e'};
+    }
+  }
+
+  Future<void> syncSpells({int? limit}) async {
+    await _syncSection('spells', limit: limit);
+  }
+
+  Future<void> syncClasses() async {
+    await _syncSection('classes');
+  }
+
+  Future<void> syncRaces() async {
+    await _syncSection('races');
+  }
+
+  Future<void> syncEquipment({int? limit}) async {
+    await _syncSection('equipment', limit: limit);
+  }
+
+  // === OTROS MÉTODOS ===
+
+  Future<Map<String, dynamic>> getSyncStats() async {
+    try {
+      final monsters = await _db.readAllMonsters();
+      final syncedMonsters = monsters.where((m) => m.edition.contains('5e')).length;
+      
+      return {
+        'total_monsters': monsters.length,
+        'synced_from_api': syncedMonsters,
+        'local_only': monsters.length - syncedMonsters,
+      };
+    } catch (e) {
+      return {'error': e.toString()};
+    }
+  }
+
+  Future<void> clearSync() async {
+    try {
+      final monsters = await _db.readAllMonsters();
+      final apiMonsters = monsters.where((m) => m.edition.contains('5e')).toList();
+      
+      for (var monster in apiMonsters) {
+        await _db.deleteMonster(monster.id);
+      }
+      
+      print('Limpiados ${apiMonsters.length} monstruos de la API');
+    } catch (e) {
+      print('Error limpiando: $e');
     }
   }
 

@@ -35,8 +35,9 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // ← INCREMENTADO PARA MIGRACIÓN
       onCreate: _createDB,
+      onUpgrade: _upgradeDB, // ← AGREGADO
     );
   }
 
@@ -86,64 +87,67 @@ class DatabaseHelper {
       )
     ''');
 
-    // Tabla de clases
+    // Tabla de clases (CON color e icon)
     await db.execute('''
-  CREATE TABLE character_classes (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    edition TEXT,
-    hit_die TEXT,
-    prime_requisite TEXT,
-    allowed_weapons TEXT,
-    allowed_armor TEXT,
-    description TEXT,
-    image_url TEXT,        
-    image_path TEXT,       
-    is_favorite INTEGER DEFAULT 0,
-    created_at TEXT
-  )
-''');
+      CREATE TABLE character_classes (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        edition TEXT,
+        hit_die TEXT,
+        prime_requisite TEXT,
+        allowed_weapons TEXT,
+        allowed_armor TEXT,
+        description TEXT,
+        abilities TEXT,
+        color TEXT,
+        icon TEXT,
+        image_url TEXT,        
+        image_path TEXT,       
+        is_favorite INTEGER DEFAULT 0,
+        created_at TEXT
+      )
+    ''');
 
-    // Tabla races
-await db.execute('''
-  CREATE TABLE races (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    edition TEXT,
-    ability_adjustments TEXT,
-    special_abilities TEXT,
-    level_limits TEXT,
-    description TEXT,
-    image_url TEXT,       
-    image_path TEXT,       
-    is_favorite INTEGER DEFAULT 0,
-    created_at TEXT
-  )
-''');
+    // Tabla races (CON color e icon)
+    await db.execute('''
+      CREATE TABLE races (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        edition TEXT,
+        ability_adjustments TEXT,
+        special_abilities TEXT,
+        level_limits TEXT,
+        description TEXT,
+        color TEXT,
+        icon TEXT,
+        image_url TEXT,       
+        image_path TEXT,       
+        is_favorite INTEGER DEFAULT 0,
+        created_at TEXT
+      )
+    ''');
 
     // Tabla de equipamiento
     await db.execute('''
-      CREATE TABLE equipment(
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  edition TEXT,
-  equipment_category TEXT,
-  cost TEXT,
-  weight TEXT,
-  damage TEXT,
-  damage_dice INTEGER,
-  damage_type TEXT,
-  ac_bonus INTEGER,
-  armor_class TEXT,
-  strength_requirement TEXT,
-  stealth_disadvantage INTEGER,
-  description TEXT,
-  image_url TEXT,           
-  image_path TEXT,          
-  is_favorite INTEGER DEFAULT 0,
-  created_at TEXT
-
-
+      CREATE TABLE equipment (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        edition TEXT,
+        equipment_category TEXT,
+        cost TEXT,
+        weight TEXT,
+        damage TEXT,
+        damage_dice INTEGER,
+        damage_type TEXT,
+        ac_bonus INTEGER,
+        armor_class TEXT,
+        strength_requirement TEXT,
+        stealth_disadvantage INTEGER,
+        description TEXT,
+        image_url TEXT,           
+        image_path TEXT,          
+        is_favorite INTEGER DEFAULT 0,
+        created_at TEXT
       )
     ''');
 
@@ -158,7 +162,6 @@ await db.execute('''
         description TEXT,
         key_features TEXT,
         image_path TEXT
-
       )
     ''');
 
@@ -171,7 +174,6 @@ await db.execute('''
         title $textType,
         description TEXT,
         page_reference TEXT
-
       )
     ''');
 
@@ -183,21 +185,55 @@ await db.execute('''
         entity_id TEXT,
         note TEXT,
         created_at TEXT
-        
       )
     ''');
   }
 
+  /// Migra la base de datos a una nueva versión
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Agregar columnas faltantes a character_classes
+      try {
+        await db.execute('ALTER TABLE character_classes ADD COLUMN abilities TEXT');
+      } catch (e) {
+        print('Column abilities already exists in character_classes');
+      }
+      
+      try {
+        await db.execute('ALTER TABLE character_classes ADD COLUMN color TEXT DEFAULT "red"');
+      } catch (e) {
+        print('Column color already exists in character_classes');
+      }
+      
+      try {
+        await db.execute('ALTER TABLE character_classes ADD COLUMN icon TEXT DEFAULT "shield"');
+      } catch (e) {
+        print('Column icon already exists in character_classes');
+      }
+
+      // Agregar columnas faltantes a races
+      try {
+        await db.execute('ALTER TABLE races ADD COLUMN color TEXT DEFAULT "brown"');
+      } catch (e) {
+        print('Column color already exists in races');
+      }
+      
+      try {
+        await db.execute('ALTER TABLE races ADD COLUMN icon TEXT DEFAULT "person"');
+      } catch (e) {
+        print('Column icon already exists in races');
+      }
+    }
+  }
+
   // ========== OPERACIONES CRUD PARA MONSTRUOS ==========
 
-  /// Crea un nuevo monstruo
   Future<Monster> createMonster(Monster monster) async {
     final db = await database;
     await db.insert('monsters', monster.toMap());
     return monster;
   }
 
-  /// Obtiene un monstruo por ID
   Future<Monster?> readMonster(String id) async {
     final db = await database;
     final maps = await db.query(
@@ -212,7 +248,6 @@ await db.execute('''
     return null;
   }
 
-  /// Obtiene todos los monstruos
   Future<List<Monster>> readAllMonsters() async {
     final db = await database;
     const orderBy = 'name ASC';
@@ -220,7 +255,6 @@ await db.execute('''
     return result.map((json) => Monster.fromMap(json)).toList();
   }
 
-  /// Obtiene monstruos filtrados por edición
   Future<List<Monster>> readMonstersByEdition(String edition) async {
     final db = await database;
     final result = await db.query(
@@ -232,7 +266,6 @@ await db.execute('''
     return result.map((json) => Monster.fromMap(json)).toList();
   }
 
-  /// Obtiene monstruos favoritos
   Future<List<Monster>> readFavoriteMonsters() async {
     final db = await database;
     final result = await db.query(
@@ -244,7 +277,6 @@ await db.execute('''
     return result.map((json) => Monster.fromMap(json)).toList();
   }
 
-  /// Actualiza un monstruo
   Future<int> updateMonster(Monster monster) async {
     final db = await database;
     return db.update(
@@ -255,7 +287,6 @@ await db.execute('''
     );
   }
 
-  /// Elimina un monstruo
   Future<int> deleteMonster(String id) async {
     final db = await database;
     return await db.delete(
@@ -265,7 +296,6 @@ await db.execute('''
     );
   }
 
-  /// Marca o desmarca un monstruo como favorito
   Future<int> toggleFavoriteMonster(String id, bool isFavorite) async {
     final db = await database;
     return db.update(
@@ -276,7 +306,6 @@ await db.execute('''
     );
   }
 
-  /// Busca monstruos por nombre
   Future<List<Monster>> searchMonsters(String query) async {
     final db = await database;
     final result = await db.query(
@@ -288,9 +317,116 @@ await db.execute('''
     return result.map((json) => Monster.fromMap(json)).toList();
   }
 
+  // ========== OPERACIONES PARA CLASES ==========
+
+  Future<CharacterClass> createClass(CharacterClass cls) async {
+    final db = await database;
+    await db.insert('character_classes', cls.toMap());
+    return cls;
+  }
+
+  Future<List<CharacterClass>> readAllClasses() async {
+    final db = await database;
+    final result = await db.query('character_classes', orderBy: 'name ASC');
+    return result.map(CharacterClass.fromMap).toList();
+  }
+
+  Future<CharacterClass?> readClass(String id) async {
+    final db = await database;
+    final maps = await db.query(
+      'character_classes',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return maps.isNotEmpty ? CharacterClass.fromMap(maps.first) : null;
+  }
+
+  // ========== OPERACIONES PARA RAZAS ==========
+
+  Future<Race> createRace(Race race) async {
+    final db = await database;
+    await db.insert('races', race.toMap());
+    return race;
+  }
+
+  Future<List<Race>> readAllRaces() async {
+    final db = await database;
+    final result = await db.query('races', orderBy: 'name ASC');
+    return result.map(Race.fromMap).toList();
+  }
+
+  Future<Race?> readRace(String id) async {
+    final db = await database;
+    final maps = await db.query(
+      'races',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return maps.isNotEmpty ? Race.fromMap(maps.first) : null;
+  }
+
+  // ========== OPERACIONES PARA HECHIZOS ==========
+
+  Future<Spell> createSpell(Spell spell) async {
+    final db = await database;
+    await db.insert('spells', spell.toMap());
+    return spell;
+  }
+
+  Future<List<Spell>> readAllSpells() async {
+    final db = await database;
+    final result = await db.query('spells', orderBy: 'name ASC');
+    return result.map(Spell.fromMap).toList();
+  }
+
+  Future<Spell?> readSpell(String id) async {
+    final db = await database;
+    final maps = await db.query('spells', where: 'id = ?', whereArgs: [id]);
+    return maps.isNotEmpty ? Spell.fromMap(maps.first) : null;
+  }
+
+  Future<int> updateSpell(Spell spell) async {
+    final db = await database;
+    return db.update('spells', spell.toMap(), where: 'id = ?', whereArgs: [spell.id]);
+  }
+
+  Future<int> toggleFavoriteSpell(String id, bool isFavorite) async {
+    final db = await database;
+    return db.update('spells', {'is_favorite': isFavorite ? 1 : 0}, where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ========== OPERACIONES PARA EQUIPAMIENTO ==========
+
+  Future<Equipment> createEquipment(Equipment equipment) async {
+    final db = await database;
+    await db.insert('equipment', equipment.toMap());
+    return equipment;
+  }
+
+  Future<List<Equipment>> readAllEquipment() async {
+    final db = await database;
+    final result = await db.query('equipment', orderBy: 'name ASC');
+    return result.map(Equipment.fromMap).toList();
+  }
+
+  Future<Equipment?> readEquipment(String id) async {
+    final db = await database;
+    final maps = await db.query('equipment', where: 'id = ?', whereArgs: [id]);
+    return maps.isNotEmpty ? Equipment.fromMap(maps.first) : null;
+  }
+
+  Future<int> updateEquipment(Equipment equipment) async {
+    final db = await database;
+    return db.update('equipment', equipment.toMap(), where: 'id = ?', whereArgs: [equipment.id]);
+  }
+
+  Future<int> toggleFavoriteEquipment(String id, bool isFavorite) async {
+    final db = await database;
+    return db.update('equipment', {'is_favorite': isFavorite ? 1 : 0}, where: 'id = ?', whereArgs: [id]);
+  }
+
   // ========== OPERACIONES PARA NOTAS ==========
 
-  /// Guarda una nota personal
   Future<int> saveNote(String entityType, String entityId, String note) async {
     final db = await database;
     return await db.insert('user_notes', {
@@ -301,7 +437,6 @@ await db.execute('''
     });
   }
 
-  /// Obtiene notas de una entidad
   Future<List<Map<String, dynamic>>> getNotes(
       String entityType, String entityId) async {
     final db = await database;
@@ -313,7 +448,6 @@ await db.execute('''
     );
   }
 
-  /// Elimina una nota
   Future<int> deleteNote(int noteId) async {
     final db = await database;
     return await db.delete(
@@ -323,9 +457,18 @@ await db.execute('''
     );
   }
 
-  // ========== INICIALIZACIÓN DE DATOS ==========
+  // ========== MÉTODOS AUXILIARES ==========
 
-  /// Inserta datos de ejemplo (llamar solo una vez)
+  Future<int> rawUpdate(
+    String table,
+    Map<String, dynamic> values,
+    String where,
+    List<dynamic> whereArgs,
+  ) async {
+    final db = await database;
+    return await db.update(table, values, where: where, whereArgs: whereArgs);
+  }
+
   Future<void> insertSampleData() async {
     final monsters = Monster.sample();
     for (var monster in monsters) {
@@ -333,125 +476,12 @@ await db.execute('''
     }
   }
 
-  /// Verifica si hay datos en la base de datos
   Future<bool> hasData() async {
     final db = await database;
     final result = await db.query('monsters', limit: 1);
     return result.isNotEmpty;
   }
 
-  // === CHARACTER CLASSES ===
-Future<CharacterClass> createClass(CharacterClass cls) async {
-  final db = await database;
-  await db.insert('character_classes', cls.toMap());
-  return cls;
-}
-
-Future<List<CharacterClass>> readAllClasses() async {
-  final db = await database;
-  final result = await db.query('character_classes', orderBy: 'name ASC');
-  return result.map(CharacterClass.fromMap).toList();
-}
-
-// === RACES ===
-Future<Race> createRace(Race race) async {
-  final db = await database;
-  await db.insert('races', race.toMap());
-  return race;
-}
-
-Future<List<Race>> readAllRaces() async {
-  final db = await database;
-  final result = await db.query('races', orderBy: 'name ASC');
-  return result.map(Race.fromMap).toList();
-}
-Future<CharacterClass?> readClass(String id) async {
-  final db = await database;
-  final maps = await db.query(
-    'character_classes',
-    where: 'id = ?',
-    whereArgs: [id],
-  );
-  return maps.isNotEmpty ? CharacterClass.fromMap(maps.first) : null;
-}
-
-Future<Race?> readRace(String id) async {
-  final db = await database;
-  final maps = await db.query(
-    'races',
-    where: 'id = ?',
-    whereArgs: [id],
-  );
-  return maps.isNotEmpty ? Race.fromMap(maps.first) : null;
-}
-  // === SPELLS ===
-Future<Spell> createSpell(Spell spell) async {
-  final db = await database;
-  await db.insert('spells', spell.toMap());
-  return spell;
-}
-
-Future<List<Spell>> readAllSpells() async {
-  final db = await database;
-  final result = await db.query('spells', orderBy: 'name ASC');
-  return result.map(Spell.fromMap).toList();
-}
-
-Future<Spell?> readSpell(String id) async {
-  final db = await database;
-  final maps = await db.query('spells', where: 'id = ?', whereArgs: [id]);
-  return maps.isNotEmpty ? Spell.fromMap(maps.first) : null;
-}
-
-Future<int> updateSpell(Spell spell) async {
-  final db = await database;
-  return db.update('spells', spell.toMap(), where: 'id = ?', whereArgs: [spell.id]);
-}
-
-Future<int> toggleFavoriteSpell(String id, bool isFavorite) async {
-  final db = await database;
-  return db.update('spells', {'is_favorite': isFavorite ? 1 : 0}, where: 'id = ?', whereArgs: [id]);
-}
-
-  // === EQUIPMENT ===
-Future<Equipment> createEquipment(Equipment equipment) async {
-  final db = await database;
-  await db.insert('equipment', equipment.toMap());
-  return equipment;
-}
-
-Future<List<Equipment>> readAllEquipment() async {
-  final db = await database;
-  final result = await db.query('equipment', orderBy: 'name ASC');
-  return result.map(Equipment.fromMap).toList();
-}
-
-Future<Equipment?> readEquipment(String id) async {
-  final db = await database;
-  final maps = await db.query('equipment', where: 'id = ?', whereArgs: [id]);
-  return maps.isNotEmpty ? Equipment.fromMap(maps.first) : null;
-}
-
-Future<int> updateEquipment(Equipment equipment) async {
-  final db = await database;
-  return db.update('equipment', equipment.toMap(), where: 'id = ?', whereArgs: [equipment.id]);
-}
-
-Future<int> toggleFavoriteEquipment(String id, bool isFavorite) async {
-  final db = await database;
-  return db.update('equipment', {'is_favorite': isFavorite ? 1 : 0}, where: 'id = ?', whereArgs: [id]);
-}
-// En DatabaseHelper, al final de la clase
-Future<int> rawUpdate(
-  String table,
-  Map<String, dynamic> values,
-  String where,
-  List<dynamic> whereArgs,
-) async {
-  final db = await database;
-  return await db.update(table, values, where: where, whereArgs: whereArgs);
-}
-  /// Cierra la base de datos
   Future<void> close() async {
     final db = await database;
     await db.close();
