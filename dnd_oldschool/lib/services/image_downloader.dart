@@ -96,6 +96,11 @@ class ImageDownloader {
       {'name': 'D&D Beyond', 'url': 'https://www.dndbeyond.com/avatars/$section/$index.png'},
       {'name': '5e.tools', 'url': 'https://5e.tools/img/$section/$index.png'},
       {'name': 'AideDD', 'url': 'https://www.aidedd.org/dnd/images/$index.jpg'},
+      {'name': 'UI Avatars', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=000000&color=fff'},
+      {'name': 'Placeholder', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, 15)}'},
+      {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
+      {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
+      
     ];
 
     // === POR SECCIÓN ===
@@ -104,15 +109,25 @@ class ImageDownloader {
         return [
           // === TUS FUENTES ORIGINALES (100% PRESERVADAS) ===
           {'name': 'D&D 5e API', 'url': 'https://www.dnd5eapi.co/api/monsters/$index/image'},
+          {'name': 'Open5e Monster', 'url': 'https://api.open5e.com/monsters/$index/image'},
+          {'name': 'https://forgottenrealms.fandom.com/wiki/', 'url': 'https://forgottenrealms.fandom.com/wiki/$nameSlug'},
           {'name': 'D&D Beyond Official', 'url': 'https://www.dndbeyond.com/avatars/monsters/$index.png'},
+          {'name': 'D&D Wiki','url': 'https://www.dandwiki.com/wiki/Special:FilePath/${nameSlug.capitalize()}-5e.png'},
+          {'name': 'DMs Guild', 'url': 'https://www.dmsguild.com/avatars/monsters/$index.png'},
+          {'name': 'Fantasy Grounds', 'url': 'https://www.fantasygrounds.com/images/monsters/$index.png'},
           {'name': 'Roll20 Compendium', 'url': 'https://roll20.net/compendium/dnd5e/$index/content?avatar=1'},
           {'name': '5e.tools (Official Art)', 'url': 'https://5e.tools/img/monsters/$index.png'},
           {'name': 'AideDD (Wizards Art)', 'url': 'https://www.aidedd.org/dnd/images/$index.jpg'},
           {'name': 'D&D Beyond Search', 'url': 'https://www.dndbeyond.com/search?q=$nameEncoded&type=monster'},
           {'name': 'Open5e Official', 'url': 'https://api.open5e.com/monsters/$index/image'},
+          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
+          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
           {'name': 'Kobold Press', 'url': 'https://koboldpress.com/wp-content/uploads/monsters/$nameSlug.jpg'},
           // === Fallbacks genéricos ===
           {'name': 'RoboHash Monsters', 'url': 'https://robohash.org/$nameSlug?set=set2&size=400x400'},
+          {'name': 'Wikimedia','url': 'https://commons.wikimedia.org/wiki/Special:FilePath/$nameEncoded',},
+          {'name': 'Unsplash Fantasy', 'url': 'https://source.unsplash.com/400x400/?fantasy,monster,$nameEncoded'},
+          {'name': 'LoremFlickr','url': 'https://loremflickr.com/400/400/dragon,fantasy,monster'},
         ];
 
       case 'spells':
@@ -121,6 +136,11 @@ class ImageDownloader {
           {'name': 'D&D Beyond Spell', 'url': 'https://www.dndbeyond.com/avatars/spells/$index.png'},
           {'name': '5e.tools Spell', 'url': 'https://5e.tools/img/spells/$index.png'},
           {'name': 'DiceBear Magic', 'url': 'https://api.dicebear.com/7.x/micah/png?seed=$index&size=400'},
+          {'name': 'UI Avatars Spell', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=00008B&color=fff'},
+          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
+          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
+          {'name': 'RoboHash Spell', 'url': 'https://robohash.org/$nameSlug?set=set3&size=400x400'},
+          {'name': 'Placeholder', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, 15)}'},
         ];
 
       case 'classes':
@@ -129,6 +149,12 @@ class ImageDownloader {
           {'name': 'D&D Beyond Class', 'url': 'https://www.dndbeyond.com/avatars/classes/$index.png'},
           {'name': '5e.tools Class', 'url': 'https://5e.tools/img/classes/$index.png'},
           {'name': 'UI Avatars Class', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=4B0082&color=fff'},
+          {'name': 'RoboHash Class', 'url': 'https://robohash.org/$nameSlug?set=set1&size=400x400'}, 
+          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
+          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
+          {'name': 'DiceBear Adventurer', 'url': 'https://api.dicebear.com/7.x/adventurer/png?seed=$nameSlug&size=400'},
+          {'name': 'Placeholder', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, 15)}'},
+          
         ];
 
       case 'races':
@@ -137,6 +163,12 @@ class ImageDownloader {
           {'name': 'D&D Beyond Race', 'url': 'https://www.dndbeyond.com/avatars/races/$index.png'},
           {'name': '5e.tools Race', 'url': 'https://5e.tools/img/races/$index.png'},
           {'name': 'DiceBear Avataaars', 'url': 'https://api.dicebear.com/7.x/avataaars/png?seed=$nameSlug&size=400'},
+          {'name': 'Wikimedia','url': 'https://commons.wikimedia.org/wiki/Special:FilePath/$nameEncoded'},
+          {'name': 'RoboHash Race', 'url': 'https://robohash.org/$nameSlug?set=set4&size=400x400'},
+          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
+          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
+          {'name': 'Placeholder', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, 15)}'},
+          
         ];
 
       case 'equipment':
@@ -145,6 +177,9 @@ class ImageDownloader {
           {'name': 'D&D Beyond Equipment', 'url': 'https://www.dndbeyond.com/avatars/equipment/$index.png'},
           {'name': '5e.tools Equipment', 'url': 'https://5e.tools/img/equipment/$index.png'},
           {'name': 'Open5e Equipment', 'url': 'https://api.open5e.com/equipment/$index/image'},
+          {'name': 'UI Avatars Equipment', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=556B2F&color=fff'},
+          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
+          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
           {'name': 'RoboHash Item', 'url': 'https://robohash.org/$nameSlug?set=set4&size=400x400'},
         ];
 
@@ -231,5 +266,12 @@ class ImageDownloader {
       if (f is File) count++;
     }
     return count;
+  }
+}
+
+extension on String {
+  capitalize() {
+    if (isEmpty) return this;
+    return this[0].toUpperCase() + substring(1);
   }
 }
