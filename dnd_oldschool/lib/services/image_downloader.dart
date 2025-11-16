@@ -82,6 +82,7 @@ class ImageDownloader {
     }
   }
 
+  
   /// Intenta descargar desde múltiples fuentes
   static Future<String?> downloadFromMultipleSources(
     String monsterName,
@@ -253,7 +254,7 @@ class ImageDownloader {
       print('❌ Error en limpieza: $e');
     }
   }
-
+  
   /// Obtiene el tamaño total de imágenes descargadas
   static Future<int> getTotalSize() async {
     try {
@@ -276,4 +277,14 @@ class ImageDownloader {
       return 0;
     }
   }
+  static Future<String?> getUnsplashImageUrl(String query) async {
+  try {
+    final encoded = Uri.encodeComponent('$query fantasy dnd');
+    return 'https://source.unsplash.com/featured/400x400/?$encoded';
+  } catch (e) {
+    print('Error generando Unsplash URL: $e');
+    return null;
+  }
+}
+
 }

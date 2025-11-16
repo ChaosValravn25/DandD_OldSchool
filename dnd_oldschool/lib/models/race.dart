@@ -1,103 +1,145 @@
+// lib/models/race.dart
 import 'package:flutter/material.dart';
+
 class Race {
+  final String id;
   final String name;
-  final String description;
+  final String edition;
   final Map<String, int> abilityMods;
   final List<String> specialAbilities;
-  final IconData icon;
+  final String description;
   final Color color;
+  final IconData icon;
+  final String? imageUrl;
+  final String? imagePath;
+  final bool isFavorite;
+  final DateTime createdAt;
 
   Race({
+    required this.id,
     required this.name,
-    required this.description,
+    required this.edition,
     required this.abilityMods,
     required this.specialAbilities,
-    required this.icon,
+    required this.description,
     required this.color,
+    required this.icon,
+    this.imageUrl,
+    this.imagePath,
+    this.isFavorite = false,
+    required this.createdAt,
   });
 
-  static List<Race> getSample() => [
-        Race(
-          name: 'Humano',
-          description:
-              'La raza más versátil y adaptable. Sin bonificaciones especiales pero sin restricciones de clase.',
-          abilityMods: {},
-          specialAbilities: [
-            'Sin límites de nivel',
-            'Pueden ser cualquier clase',
-            'Bonus de 10% a experiencia',
-          ],
-          icon: Icons.person,
-          color: Colors.blue,
-        ),
-        Race(
-          name: 'Elfo',
-          description:
-              'Seres mágicos de los bosques. Gráciles y conectados con la naturaleza y la magia.',
-          abilityMods: {'DES': 1, 'CON': -1},
-          specialAbilities: [
-            'Infravisión 60 pies',
-            'Inmunidad a parálisis de ghoul',
-            'Detectar puertas secretas',
-            'Resistencia a encantamientos',
-          ],
-          icon: Icons.eco,
-          color: Colors.green,
-        ),
-        Race(
-          name: 'Enano',
-          description:
-              'Robustos habitantes de las montañas. Maestros artesanos y guerreros implacables.',
-          abilityMods: {'CON': 1, 'CAR': -1},
-          specialAbilities: [
-            'Infravisión 60 pies',
-            '+4 vs venenos',
-            '+4 vs magia',
-            'Detectar construcciones especiales',
-          ],
-          icon: Icons.diamond,
-          color: Colors.brown,
-        ),
-        Race(
-          name: 'Mediano (Halfling)',
-          description:
-              'Pequeñas criaturas pacíficas. Valientes cuando es necesario y excepcionalmente afortunados.',
-          abilityMods: {'DES': 1, 'FUE': -1},
-          specialAbilities: [
-            '+1 a AC vs criaturas grandes',
-            '+3 con armas de proyectil',
-            '+1 a salvaciones',
-            'Sigilo mejorado',
-          ],
-          icon: Icons.wb_sunny,
-          color: Colors.orange,
-        ),
-        Race(
-          name: 'Semielfo',
-          description:
-              'Mezcla de humano y elfo. Combinan lo mejor de ambos mundos con menos restricciones.',
-          abilityMods: {},
-          specialAbilities: [
-            'Infravisión 60 pies',
-            'Resistencia a encantamientos',
-            'Detectar puertas secretas (30%)',
-            'Multiclase flexible',
-          ],
-          icon: Icons.people,
-          color: Colors.teal,
-        ),
-        Race(
-          name: 'Semiorco',
-          description:
-              'Fuertes y resistentes. A menudo rechazados por ambas sociedades, se destacan con su determinación.',
-          abilityMods: {'FUE': 1, 'CAR': -2, 'CON': 1},
-          specialAbilities: [
-            'Infravisión 60 pies',
-            'Resistencia natural',
-            'Fuerza excepcional',
-          ],
-          icon: Icons.fitness_center,
-          color: Colors.grey,
-        ),
-      ];
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'edition': edition,
+      'ability_adjustments': abilityMods.entries
+          .map((e) => '${e.key}:${e.value}')
+          .join(','),
+      'special_abilities': specialAbilities.join('|'),
+      'description': description,
+      'image_url': imageUrl,
+      'image_path': imagePath,
+      'is_favorite': isFavorite ? 1 : 0,
+      'created_at': createdAt.millisecondsSinceEpoch,
+    };
+  }
+
+  static Race fromMap(Map<String, dynamic> map) {
+    final mods = <String, int>{};
+    if (map['ability_adjustments'] != null) {
+      final parts = (map['ability_adjustments'] as String).split(',');
+      for (var part in parts) {
+        final kv = part.split(':');
+        if (kv.length == 2) {
+          mods[kv[0]] = int.tryParse(kv[1]) ?? 0;
+        }
+      }
+    }
+
+    final abilities = <String>[];
+    if (map['special_abilities'] != null) {
+      abilities.addAll((map['special_abilities'] as String).split('|'));
+    }
+
+    return Race(
+      id: map['id'],
+      name: map['name'],
+      edition: map['edition'],
+      abilityMods: mods,
+      specialAbilities: abilities,
+      description: map['description'] ?? '',
+      color: _parseColor(map['color'] ?? 'brown'),
+      icon: _parseIcon(map['icon'] ?? 'person'),
+      imageUrl: map['image_url'],
+      imagePath: map['image_path'],
+      isFavorite: (map['is_favorite'] ?? 0) == 1,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at']),
+    );
+  }
+
+  static Color _parseColor(String colorName) {
+    switch (colorName.toLowerCase()) {
+      case 'red': return Colors.red;
+      case 'blue': return Colors.blue;
+      case 'green': return Colors.green;
+      case 'purple': return Colors.purple;
+      case 'orange': return Colors.orange;
+      default: return Colors.brown;
+    }
+  }
+
+  static IconData _parseIcon(String iconName) {
+    switch (iconName) {
+      case 'shield': return Icons.shield;
+      case 'auto_awesome': return Icons.auto_awesome;
+      case 'groups': return Icons.groups;
+      case 'backpack': return Icons.backpack;
+      default: return Icons.person;
+    }
+  }
+
+  // === GET SAMPLE ===
+  static List<Race> getSample() {
+    return [
+      Race(
+        id: 'human',
+        name: 'Humano',
+        edition: '5e',
+        abilityMods: {'FUE': 1, 'DES': 1, 'CON': 1, 'INT': 1, 'SAB': 1, 'CAR': 1},
+        specialAbilities: ['Versátil', 'Idiomas adicionales'],
+        description: 'Los humanos son adaptables, ambiciosos y versátiles.',
+        color: Colors.brown,
+        icon: Icons.person,
+        isFavorite: false,
+        createdAt: DateTime.now(),
+      ),
+      Race(
+        id: 'elf',
+        name: 'Elfo',
+        edition: '5e',
+        abilityMods: {'DES': 2},
+        specialAbilities: ['Visión en la oscuridad', 'Percepción aguda', 'Entrenamiento élfico'],
+        description: 'Elegantes y longevos, con afinidad por la magia.',
+        color: Colors.green,
+        icon: Icons.auto_awesome,
+        isFavorite: true,
+        createdAt: DateTime.now(),
+      ),
+      Race(
+        id: 'dwarf',
+        name: 'Enano',
+        edition: '5e',
+        abilityMods: {'CON': 2},
+        specialAbilities: ['Resistencia enana', 'Visión en la oscuridad', 'Entrenamiento con herramientas'],
+        description: 'Fuertes, resistentes y hábiles artesanos.',
+        color: Colors.orange,
+        icon: Icons.engineering,
+        isFavorite: false,
+        createdAt: DateTime.now(),
+      ),
+    ];
+  }
 }

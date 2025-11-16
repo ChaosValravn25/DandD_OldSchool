@@ -2,6 +2,11 @@ import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import '../models/monster.dart';
+import '../models/character_class.dart';
+import '../models/race.dart';
+import '../models/equipment.dart';
+import 'package:sqflite/sqflite.dart';
+import '../models/spell.dart';
 
 /// Servicio para gestionar la base de datos SQLite
 class DatabaseHelper {
@@ -76,51 +81,69 @@ class DatabaseHelper {
         duration TEXT,
         description TEXT,
         is_favorite $boolType,
-        created_at TEXT
+        created_at TEXT,
+        image_url TEXT,
+        image_path TEXT
       )
     ''');
 
     // Tabla de clases
     await db.execute('''
-      CREATE TABLE character_classes (
-        id $idType,
-        name $textType,
-        edition $textType,
-        hit_die TEXT,
-        prime_requisite TEXT,
-        allowed_weapons TEXT,
-        allowed_armor TEXT,
-        description TEXT
+  CREATE TABLE character_classes (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    edition TEXT,
+    hit_die TEXT,
+    prime_requisite TEXT,
+    allowed_weapons TEXT,
+    allowed_armor TEXT,
+    description TEXT,
+    image_url TEXT,        
+    image_path TEXT,       
+    is_favorite INTEGER DEFAULT 0,
+    created_at TEXT
+  )
+''');
 
-      )
-    ''');
-
-    // Tabla de razas
-    await db.execute('''
-      CREATE TABLE races (
-        id $idType,
-        name $textType,
-        edition $textType,
-        ability_adjustments TEXT,
-        special_abilities TEXT,
-        level_limits TEXT,
-        description TEXT
-
-      )
-    ''');
+    // Tabla races
+await db.execute('''
+  CREATE TABLE races (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    edition TEXT,
+    ability_adjustments TEXT,
+    special_abilities TEXT,
+    level_limits TEXT,
+    description TEXT,
+    image_url TEXT,       
+    image_path TEXT,       
+    is_favorite INTEGER DEFAULT 0,
+    created_at TEXT
+  )
+''');
 
     // Tabla de equipamiento
     await db.execute('''
-      CREATE TABLE equipment (
-        id $idType,
-        name $textType,
-        edition $textType,
-        equipment_type TEXT,
-        cost TEXT,
-        weight TEXT,
-        damage TEXT,
-        ac_bonus INTEGER,
-        description TEXT
+      CREATE TABLE equipment(
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  edition TEXT,
+  equipment_category TEXT,
+  cost TEXT,
+  weight TEXT,
+  damage TEXT,
+  damage_dice INTEGER,
+  damage_type TEXT,
+  ac_bonus INTEGER,
+  armor_class TEXT,
+  strength_requirement TEXT,
+  stealth_disadvantage INTEGER,
+  description TEXT,
+  image_url TEXT,           
+  image_path TEXT,          
+  is_favorite INTEGER DEFAULT 0,
+  created_at TEXT
+
 
       )
     ''');
@@ -318,6 +341,117 @@ class DatabaseHelper {
     return result.isNotEmpty;
   }
 
+  // === CHARACTER CLASSES ===
+Future<CharacterClass> createClass(CharacterClass cls) async {
+  final db = await database;
+  await db.insert('character_classes', cls.toMap());
+  return cls;
+}
+
+Future<List<CharacterClass>> readAllClasses() async {
+  final db = await database;
+  final result = await db.query('character_classes', orderBy: 'name ASC');
+  return result.map(CharacterClass.fromMap).toList();
+}
+
+// === RACES ===
+Future<Race> createRace(Race race) async {
+  final db = await database;
+  await db.insert('races', race.toMap());
+  return race;
+}
+
+Future<List<Race>> readAllRaces() async {
+  final db = await database;
+  final result = await db.query('races', orderBy: 'name ASC');
+  return result.map(Race.fromMap).toList();
+}
+Future<CharacterClass?> readClass(String id) async {
+  final db = await database;
+  final maps = await db.query(
+    'character_classes',
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+  return maps.isNotEmpty ? CharacterClass.fromMap(maps.first) : null;
+}
+
+Future<Race?> readRace(String id) async {
+  final db = await database;
+  final maps = await db.query(
+    'races',
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+  return maps.isNotEmpty ? Race.fromMap(maps.first) : null;
+}
+  // === SPELLS ===
+Future<Spell> createSpell(Spell spell) async {
+  final db = await database;
+  await db.insert('spells', spell.toMap());
+  return spell;
+}
+
+Future<List<Spell>> readAllSpells() async {
+  final db = await database;
+  final result = await db.query('spells', orderBy: 'name ASC');
+  return result.map(Spell.fromMap).toList();
+}
+
+Future<Spell?> readSpell(String id) async {
+  final db = await database;
+  final maps = await db.query('spells', where: 'id = ?', whereArgs: [id]);
+  return maps.isNotEmpty ? Spell.fromMap(maps.first) : null;
+}
+
+Future<int> updateSpell(Spell spell) async {
+  final db = await database;
+  return db.update('spells', spell.toMap(), where: 'id = ?', whereArgs: [spell.id]);
+}
+
+Future<int> toggleFavoriteSpell(String id, bool isFavorite) async {
+  final db = await database;
+  return db.update('spells', {'is_favorite': isFavorite ? 1 : 0}, where: 'id = ?', whereArgs: [id]);
+}
+
+  // === EQUIPMENT ===
+Future<Equipment> createEquipment(Equipment equipment) async {
+  final db = await database;
+  await db.insert('equipment', equipment.toMap());
+  return equipment;
+}
+
+Future<List<Equipment>> readAllEquipment() async {
+  final db = await database;
+  final result = await db.query('equipment', orderBy: 'name ASC');
+  return result.map(Equipment.fromMap).toList();
+}
+
+Future<Equipment?> readEquipment(String id) async {
+  final db = await database;
+  final maps = await db.query('equipment', where: 'id = ?', whereArgs: [id]);
+  return maps.isNotEmpty ? Equipment.fromMap(maps.first) : null;
+}
+
+Future<int> updateEquipment(Equipment equipment) async {
+  final db = await database;
+  return db.update('equipment', equipment.toMap(), where: 'id = ?', whereArgs: [equipment.id]);
+}
+
+Future<int> toggleFavoriteEquipment(String id, bool isFavorite) async {
+  final db = await database;
+  return db.update('equipment', {'is_favorite': isFavorite ? 1 : 0}, where: 'id = ?', whereArgs: [id]);
+}
+// En DatabaseHelper, al final de la clase
+Future<int> rawUpdate(
+  String table,
+  Map<String, dynamic> values,
+  String where,
+  List<dynamic> whereArgs,
+) async {
+  final db = await database;
+  return await db.update(table, values, where: where, whereArgs: whereArgs);
+}
   /// Cierra la base de datos
   Future<void> close() async {
     final db = await database;

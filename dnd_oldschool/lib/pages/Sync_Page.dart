@@ -1,9 +1,6 @@
 // lib/pages/sync_page.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../services/sync_service.dart';
-import '../providers/monster_provider.dart';
-import '../widgets/StatCard.dart';
 
 class SyncPage extends StatefulWidget {
   const SyncPage({super.key});
@@ -16,7 +13,7 @@ class _SyncPageState extends State<SyncPage> {
   final SyncService _syncService = SyncService();
   bool _isSyncing = false;
   double _progress = 0.0;
-  String _statusMessage = '';
+  String _statusMessage = 'Listo para sincronizar';
   Map<String, dynamic>? _lastResult;
   Map<String, dynamic>? _stats;
 
@@ -33,20 +30,19 @@ class _SyncPageState extends State<SyncPage> {
     });
   }
 
-  Future<void> _startSync({int? limit}) async {
+  Future<void> _startSyncAll() async {
     setState(() {
       _isSyncing = true;
       _progress = 0.0;
-      _statusMessage = 'Iniciando sincronización...';
+      _statusMessage = 'Iniciando sincronización completa...';
       _lastResult = null;
     });
 
-    final result = await _syncService.syncMonsters(
-      limit: limit,
+    final result = await _syncService.syncAll(
       onProgress: (current, total) {
         setState(() {
-          _progress = current / total;
-          _statusMessage = 'Sincronizando: $current / $total';
+          _progress = _syncService.progress;
+          _statusMessage = 'Sincronizando: $current / $total elementos';
         });
       },
     );
@@ -54,23 +50,18 @@ class _SyncPageState extends State<SyncPage> {
     setState(() {
       _isSyncing = false;
       _lastResult = result;
-      _statusMessage = result['message'] ?? 'Completado';
+      _statusMessage = result['success'] == true
+          ? 'Sincronización completa exitosa'
+          : 'Error en sincronización';
     });
-
-    // Recargar monstruos en el provider
-    if (mounted) {
-      final provider = Provider.of<MonsterProvider>(context, listen: false);
-      await provider.loadMonsters();
-    }
 
     await _loadStats();
 
-    // Mostrar resultado
-    if (mounted && result['success'] == true) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_statusMessage),
-          backgroundColor: Colors.green,
+          backgroundColor: result['success'] == true ? Colors.green : Colors.red,
         ),
       );
     }
@@ -80,14 +71,15 @@ class _SyncPageState extends State<SyncPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sincronización API'),
+        title: const Text('Sincronización Completa'),
+        backgroundColor: Colors.brown,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Información
+            // Info
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -96,117 +88,62 @@ class _SyncPageState extends State<SyncPage> {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.cloud_download,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                        Icon(Icons.cloud_sync, color: Theme.of(context).colorScheme.primary),
                         const SizedBox(width: 12),
                         const Expanded(
                           child: Text(
                             'Sincronización con D&D 5e API',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Descarga monstruos desde la API oficial de D&D 5e. Las imágenes se guardarán localmente para uso offline.',
+                      'Sincroniza TODAS las secciones:\n'
+                      '• Monstruos\n'
+                      '• Hechizos\n'
+                      '• Clases\n'
+                      '• Razas\n'
+                      '• Equipo\n\n'
+                      'Imágenes se descargan y guardan localmente para uso offline.',
                       style: TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // Estadísticas
             if (_stats != null) ...[
-              const Text(
-                'Estadísticas',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+              const Text('Estadísticas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(
-                    child: StatCard(
-                      icon: Icons.pets,
-                      label: 'Total',
-                      value: '${_stats!['total_monsters'] ?? 0}',
-                      color: Colors.blue,
-                    ),
-                  ),
+                  _buildStatCard(Icons.pets, 'Total', '${_stats!['total_monsters'] ?? 0}', Colors.blue),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: StatCard(
-                      icon: Icons.cloud_done,
-                      label: 'Desde API',
-                      value: '${_stats!['synced_from_api'] ?? 0}',
-                      color: Colors.green,
-                    ),
-                  ),
+                  _buildStatCard(Icons.cloud_done, 'API', '${_stats!['synced_from_api'] ?? 0}', Colors.green),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: StatCard(
-                      icon: Icons.storage,
-                      label: 'Locales',
-                      value: '${_stats!['local_only'] ?? 0}',
-                      color: Colors.orange,
-                    ),
-                  ),
+                  _buildStatCard(Icons.storage, 'Local', '${_stats!['local_only'] ?? 0}', Colors.orange),
                 ],
               ),
               const SizedBox(height: 24),
             ],
 
-            // Botones de sincronización
-            const Text(
-              'Opciones de Sincronización',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-
-            // Sincronización rápida (10 monstruos)
+            // Botón principal
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _isSyncing ? null : () => _startSync(limit: 10),
-                icon: const Icon(Icons.flash_on),
-                label: const Text('Sincronización Rápida (10)'),
+                onPressed: _isSyncing ? null : _startSyncAll,
+                icon: const Icon(Icons.sync, size: 28),
+                label: Text(
+                  _isSyncing ? 'Sincronizando...' : 'Sincronizar TODO',
+                  style: const TextStyle(fontSize: 18),
+                ),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Sincronización media (50 monstruos)
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _isSyncing ? null : () => _startSync(limit: 50),
-                icon: const Icon(Icons.download),
-                label: const Text('Sincronización Media (50)'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Sincronización completa
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _isSyncing ? null : () => _startSync(),
-                icon: const Icon(Icons.cloud_sync),
-                label: const Text('Sincronización Completa'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.deepOrange,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
                 ),
               ),
             ),
@@ -218,31 +155,22 @@ class _SyncPageState extends State<SyncPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
+                          const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
                           const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _statusMessage,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
+                          Expanded(child: Text(_statusMessage, style: const TextStyle(fontWeight: FontWeight.bold))),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      LinearProgressIndicator(value: _progress),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${(_progress * 100).toStringAsFixed(0)}%',
-                        style: const TextStyle(color: Colors.grey),
+                      const SizedBox(height: 16),
+                      LinearProgressIndicator(
+                        value: _progress,
+                        backgroundColor: Colors.grey.shade300,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.deepOrange),
                       ),
+                      const SizedBox(height: 8),
+                      Text('${(_progress * 100).toStringAsFixed(1)}%', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -250,12 +178,10 @@ class _SyncPageState extends State<SyncPage> {
               const SizedBox(height: 16),
             ],
 
-            // Resultado de última sincronización
+            // Resultado
             if (_lastResult != null && !_isSyncing) ...[
               Card(
-                color: _lastResult!['success'] == true
-                    ? Colors.green.shade50
-                    : Colors.red.shade50,
+                color: _lastResult!['success'] == true ? Colors.green.shade50 : Colors.red.shade50,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -264,29 +190,18 @@ class _SyncPageState extends State<SyncPage> {
                       Row(
                         children: [
                           Icon(
-                            _lastResult!['success'] == true
-                                ? Icons.check_circle
-                                : Icons.error,
-                            color: _lastResult!['success'] == true
-                                ? Colors.green
-                                : Colors.red,
+                            _lastResult!['success'] == true ? Icons.check_circle : Icons.error,
+                            color: _lastResult!['success'] == true ? Colors.green : Colors.red,
                           ),
                           const SizedBox(width: 12),
-                          const Text(
-                            'Resultado',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          const Text('Resultado', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(height: 12),
                       Text(_lastResult!['message'] ?? 'Sin mensaje'),
-                      if (_lastResult!['synced'] != null) ...[
+                      if (_lastResult!['details'] != null) ...[
                         const SizedBox(height: 8),
-                        Text('✅ Sincronizados: ${_lastResult!['synced']}'),
-                        Text('❌ Errores: ${_lastResult!['errors'] ?? 0}'),
+                        ...( _lastResult!['details'] as Map).entries.map((e) => Text('• ${e.key}: ${e.value['success']} OK, ${e.value['errors']} errores')),
                       ],
                     ],
                   ),
@@ -294,6 +209,24 @@ class _SyncPageState extends State<SyncPage> {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(IconData icon, String label, String value, Color color) {
+    return Expanded(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Icon(icon, color: color, size: 32),
+              const SizedBox(height: 8),
+              Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+              Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
         ),
       ),
     );

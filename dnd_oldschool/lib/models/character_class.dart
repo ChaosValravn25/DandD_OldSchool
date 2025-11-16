@@ -1,121 +1,148 @@
+// lib/models/character_class.dart
 import 'package:flutter/material.dart';
-
+import 'package:uuid/uuid.dart';
 class CharacterClass {
+  final String id;
   final String name;
-  final String description;
+  final String edition;
   final String hitDie;
+  final String primeRequisite;
+  final String allowedWeapons;
+  final String allowedArmor;
+  final String description;
   final List<String> abilities;
-  final IconData icon;
-  final Color color;
+  final Color color;     // ← AÑADIDO
+  final IconData icon;   // ← AÑADIDO
+  final String? imageUrl;
+  final String? imagePath;
+  final bool isFavorite;
+  final DateTime createdAt;
 
   CharacterClass({
+    required this.id,
     required this.name,
-    required this.description,
+    required this.edition,
     required this.hitDie,
+    required this.primeRequisite,
+    required this.allowedWeapons,
+    required this.allowedArmor,
+    required this.description,
     required this.abilities,
-    required this.icon,
     required this.color,
+    required this.icon,
+    this.imageUrl,
+    this.imagePath,
+    this.isFavorite = false,
+    required this.createdAt,
   });
 
-  static List<CharacterClass> getSample() => [
-        CharacterClass(
-          name: 'Guerrero (Fighter)',
-          description:
-              'Maestro del combate cuerpo a cuerpo. Experto en todas las armas y armaduras, el guerrero es la columna vertebral de cualquier grupo aventurero.',
-          hitDie: '1d10',
-          abilities: [
-            'Competencia en todas las armas',
-            'Competencia en todas las armaduras',
-            'Múltiples ataques por nivel',
-            'Bonos de ataque superiores',
-          ],
-          icon: Icons.shield,
-          color: Colors.red,
-        ),
-        CharacterClass(
-          name: 'Mago (Magic-User)',
-          description:
-              'Estudioso de las artes arcanas. Débil físicamente pero capaz de lanzar poderosos hechizos que pueden cambiar el curso de la batalla.',
-          hitDie: '1d4',
-          abilities: [
-            'Acceso a hechizos arcanos',
-            'Libro de hechizos',
-            'Preparación de conjuros diaria',
-            'Slots de hechizo por nivel',
-          ],
-          icon: Icons.auto_fix_high,
-          color: Colors.purple,
-        ),
-        CharacterClass(
-          name: 'Clérigo (Cleric)',
-          description:
-              'Servidor de los dioses con poder divino. Combina habilidades de combate moderadas con magia curativa y protectora.',
-          hitDie: '1d8',
-          abilities: [
-            'Hechizos divinos',
-            'Turn Undead (expulsar no-muertos)',
-            'Armaduras pesadas permitidas',
-            'Armas contundentes',
-          ],
-          icon: Icons.church,
-          color: Colors.amber,
-        ),
-        CharacterClass(
-          name: 'Ladrón (Thief)',
-          description:
-              'Experto en sigilo, trampas y subterfugio. Esencial para explorar mazmorras peligrosas llenas de mecanismos mortales.',
-          hitDie: '1d6',
-          abilities: [
-            'Backstab (ataque por la espalda)',
-            'Abrir cerraduras',
-            'Detectar y desarmar trampas',
-            'Moverse en silencio',
-            'Esconderse en las sombras',
-          ],
-          icon: Icons.visibility_off,
-          color: Colors.grey,
-        ),
-        CharacterClass(
-          name: 'Enano (Dwarf)',
-          description:
-              'Guerrero resistente de las montañas. En ediciones antiguas, Enano era una clase, no solo una raza.',
-          hitDie: '1d8',
-          abilities: [
-            'Resistencia contra venenos',
-            'Resistencia contra magia',
-            'Detección de construcciones',
-            'Infravisión',
-          ],
-          icon: Icons.terrain,
-          color: Colors.brown,
-        ),
-        CharacterClass(
-          name: 'Elfo (Elf)',
-          description:
-              'Combinación de guerrero y mago. Los elfos podían cambiar entre clases según la situación.',
-          hitDie: '1d6',
-          abilities: [
-            'Cambio entre guerrero y mago',
-            'Inmunidad a Ghoul paralysis',
-            'Infravisión',
-            'Detectar puertas secretas',
-          ],
-          icon: Icons.park,
-          color: Colors.green,
-        ),
-        CharacterClass(
-          name: 'Mediano (Halfling)',
-          description:
-              'Pequeños pero valientes. Excelentes con proyectiles y difíciles de golpear por su tamaño.',
-          hitDie: '1d6',
-          abilities: [
-            'Bonos con armas a distancia',
-            'Difícil de golpear (AC mejorado)',
-            'Resistencia a magia',
-            'Sigilo natural',
-          ],
-          icon: Icons.local_dining,
-          color: Colors.orange,
-        ),
-      ];
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'edition': edition,
+      'hit_die': hitDie,
+      'prime_requisite': primeRequisite,
+      'allowed_weapons': allowedWeapons,
+      'allowed_armor': allowedArmor,
+      'description': description,
+      'abilities': abilities.join('|'),
+      'color': _colorToString(color),
+      'icon': _iconToString(icon),
+      'image_url': imageUrl,
+      'image_path': imagePath,
+      'is_favorite': isFavorite ? 1 : 0,
+      'created_at': createdAt.millisecondsSinceEpoch,
+    };
+  }
+
+  static CharacterClass fromMap(Map<String, dynamic> map) {
+    return CharacterClass(
+      id: map['id'],
+      name: map['name'],
+      edition: map['edition'],
+      hitDie: map['hit_die'] ?? '—',
+      primeRequisite: map['prime_requisite'] ?? '—',
+      allowedWeapons: map['allowed_weapons'] ?? '—',
+      allowedArmor: map['allowed_armor'] ?? '—',
+      description: map['description'] ?? '',
+      abilities: (map['abilities'] as String?)?.split('|') ?? [],
+      color: _parseColor(map['color'] ?? 'red'),
+      icon: _parseIcon(map['icon'] ?? 'shield'),
+      imageUrl: map['image_url'],
+      imagePath: map['image_path'],
+      isFavorite: (map['is_favorite'] ?? 0) == 1,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at']),
+    );
+  }
+
+  static Color _parseColor(String colorName) {
+    switch (colorName.toLowerCase()) {
+      case 'red': return Colors.red;
+      case 'blue': return Colors.blue;
+      case 'green': return Colors.green;
+      case 'purple': return Colors.purple;
+      default: return Colors.red;
+    }
+  }
+
+  static IconData _parseIcon(String iconName) {
+    switch (iconName) {
+      case 'shield': return Icons.shield;
+      case 'auto_awesome': return Icons.auto_awesome;
+      case 'sports_martial_arts': return Icons.sports_martial_arts;
+      default: return Icons.shield;
+    }
+  }
+
+  static String _colorToString(Color color) {
+    if (color == Colors.red) return 'red';
+    if (color == Colors.blue) return 'blue';
+    if (color == Colors.green) return 'green';
+    if (color == Colors.purple) return 'purple';
+    return 'red';
+  }
+
+  static String _iconToString(IconData icon) {
+    if (icon == Icons.shield) return 'shield';
+    if (icon == Icons.auto_awesome) return 'auto_awesome';
+    if (icon == Icons.sports_martial_arts) return 'sports_martial_arts';
+    return 'shield';
+  }
+
+  // === GET SAMPLE ===
+  static List<CharacterClass> getSample() {
+    return [
+      CharacterClass(
+        id: 'fighter',
+        name: 'Guerrero',
+        edition: '5e',
+        hitDie: '1d10',
+        primeRequisite: 'Fuerza',
+        allowedWeapons: 'Todas',
+        allowedArmor: 'Todas',
+        description: 'Un maestro del combate y las armas.',
+        abilities: ['Estilo de Combate', 'Segundo Aliento', 'Oleada de Acción'],
+        color: Colors.red,
+        icon: Icons.shield,
+        isFavorite: false,
+        createdAt: DateTime.now(),
+      ),
+      CharacterClass(
+        id: 'wizard',
+        name: 'Mago',
+        edition: '5e',
+        hitDie: '1d6',
+        primeRequisite: 'Inteligencia',
+        allowedWeapons: 'Daga, bastón',
+        allowedArmor: 'Ninguna',
+        description: 'Un lanzador de hechizos arcano.',
+        abilities: ['Lanzamiento de Hechizos', 'Recuperación Arcana'],
+        color: Colors.purple,
+        icon: Icons.auto_awesome,
+        isFavorite: true,
+        createdAt: DateTime.now(),
+      ),
+    ];
+  }
 }
