@@ -67,8 +67,74 @@ class _EquipmentPageState extends State<EquipmentPage> {
     );
 
     try {
-      await _syncService.syncEquipment(limit: 100);
-      await _loadEquipment();
+      Future<void> _syncEquipment() async {
+  setState(() => _loading = true);
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      title: const Text('Sincronizando Equipamiento'),
+      content: StatefulBuilder(
+        builder: (context, setDialogState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LinearProgressIndicator(
+              value: _syncService.progress > 0 ? _syncService.progress : null,
+              backgroundColor: Colors.grey.shade300,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _syncService.progress > 0
+                  ? '${(_syncService.progress * 100).toStringAsFixed(0)}%'
+                  : 'Iniciando...',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  try {
+    await _syncService.syncEquipment(
+      onProgress: (current, total) {
+        setState(() {
+          _syncService.progress = current / total;
+        });
+        if (mounted) {
+          Navigator.of(context).pop();
+          _syncEquipment(); // Reabrir con progreso
+        }
+      },
+    );
+
+    await _loadEquipment();
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Equipamiento sincronizado correctamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    }
+  } finally {
+    setState(() {
+      _loading = false;
+      _syncService.progress = 0.0;
+    });
+  }
+}
       
       if (mounted) {
         Navigator.pop(context);

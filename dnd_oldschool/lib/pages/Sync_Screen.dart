@@ -1,6 +1,6 @@
-// lib/screens/sync_screen.dart
+// lib/pages/Sync_Screen.dart
 import 'package:flutter/material.dart';
-import '../services/sync_service.dart';
+import '../services/sync_service.dart';  // ← IMPORT CORREGIDO
 import '../services/database_helper.dart';
 
 class SyncScreen extends StatefulWidget {
@@ -11,7 +11,7 @@ class SyncScreen extends StatefulWidget {
 }
 
 class _SyncScreenState extends State<SyncScreen> {
-  final SyncService _syncService = SyncService();
+  final SyncService _syncService = SyncService();  // ← OK
   final DatabaseHelper _db = DatabaseHelper.instance;
   
   bool _isSyncing = false;

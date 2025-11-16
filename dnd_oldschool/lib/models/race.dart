@@ -30,6 +30,7 @@ class Race {
     required this.createdAt,
   });
 
+  // === TO MAP (SQLite) ===
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -40,6 +41,8 @@ class Race {
           .join(','),
       'special_abilities': specialAbilities.join('|'),
       'description': description,
+      'color': _colorToString(color),
+      'icon': _iconToString(icon),
       'image_url': imageUrl,
       'image_path': imagePath,
       'is_favorite': isFavorite ? 1 : 0,
@@ -47,6 +50,7 @@ class Race {
     };
   }
 
+  // === FROM MAP (SQLite) ===
   static Race fromMap(Map<String, dynamic> map) {
     final mods = <String, int>{};
     if (map['ability_adjustments'] != null) {
@@ -80,6 +84,77 @@ class Race {
     );
   }
 
+  // === FROM JSON (API + Imagen local) ===
+  factory Race.fromJson(Map<String, dynamic> json, String? localImage) {
+    final mods = <String, int>{};
+    if (json['ability_bonuses'] != null) {
+      for (var bonus in json['ability_bonuses']) {
+        final stat = bonus['ability_score']['name']
+            .toString()
+            .toUpperCase()
+            .substring(0, 3);
+        final value = bonus['bonus'] as int;
+        mods[stat] = value;
+      }
+    }
+
+    final abilities = <String>[];
+    if (json['traits'] != null) {
+      abilities.addAll((json['traits'] as List).map((t) => t['name'] as String));
+    }
+    if (json['starting_proficiencies'] != null) {
+      abilities.addAll((json['starting_proficiencies'] as List)
+          .map((p) => 'Prof: ${p['name']}'));
+    }
+    if (json['languages'] != null) {
+      abilities.add('Idiomas: ${(json['languages'] as List).length}+');
+    }
+
+    return Race(
+      id: json['index'],
+      name: json['name'],
+      edition: '5e',
+      abilityMods: mods,
+      specialAbilities: abilities,
+      description: 'Raza de D&D 5e importada desde API oficial.',
+      color: _getRandomColor(),
+      icon: _getRandomIcon(),
+      imagePath: localImage,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  get speed => null;
+
+  // === MÉTODOS AUXILIARES ===
+  static Color _getRandomColor() {
+    final colors = [
+      Colors.red,
+      Colors.blue,
+      Colors.green,
+      Colors.purple,
+      Colors.orange,
+      Colors.brown,
+      Colors.teal,
+      Colors.indigo,
+    ];
+    return colors[DateTime.now().millisecond % colors.length];
+  }
+
+  static IconData _getRandomIcon() {
+    final icons = [
+      Icons.person,
+      Icons.auto_awesome,
+      Icons.shield,
+      Icons.engineering,
+      Icons.groups,
+      Icons.backpack,
+      Icons.psychology,
+      Icons.whatshot,
+    ];
+    return icons[DateTime.now().millisecond % icons.length];
+  }
+
   static Color _parseColor(String colorName) {
     switch (colorName.toLowerCase()) {
       case 'red': return Colors.red;
@@ -87,21 +162,52 @@ class Race {
       case 'green': return Colors.green;
       case 'purple': return Colors.purple;
       case 'orange': return Colors.orange;
+      case 'brown': return Colors.brown;
+      case 'teal': return Colors.teal;
+      case 'indigo': return Colors.indigo;
       default: return Colors.brown;
     }
   }
 
   static IconData _parseIcon(String iconName) {
-    switch (iconName) {
-      case 'shield': return Icons.shield;
+    switch (iconName.toLowerCase()) {
+      case 'person': return Icons.person;
       case 'auto_awesome': return Icons.auto_awesome;
+      case 'shield': return Icons.shield;
+      case 'engineering': return Icons.engineering;
       case 'groups': return Icons.groups;
       case 'backpack': return Icons.backpack;
+      case 'psychology': return Icons.psychology;
+      case 'whatshot': return Icons.whatshot;
       default: return Icons.person;
     }
   }
 
-  // === GET SAMPLE ===
+  static String _colorToString(Color color) {
+    if (color == Colors.red) return 'red';
+    if (color == Colors.blue) return 'blue';
+    if (color == Colors.green) return 'green';
+    if (color == Colors.purple) return 'purple';
+    if (color == Colors.orange) return 'orange';
+    if (color == Colors.brown) return 'brown';
+    if (color == Colors.teal) return 'teal';
+    if (color == Colors.indigo) return 'indigo';
+    return 'brown';
+  }
+
+  static String _iconToString(IconData icon) {
+    if (icon == Icons.person) return 'person';
+    if (icon == Icons.auto_awesome) return 'auto_awesome';
+    if (icon == Icons.shield) return 'shield';
+    if (icon == Icons.engineering) return 'engineering';
+    if (icon == Icons.groups) return 'groups';
+    if (icon == Icons.backpack) return 'backpack';
+    if (icon == Icons.psychology) return 'psychology';
+    if (icon == Icons.whatshot) return 'whatshot';
+    return 'person';
+  }
+
+  // === DATOS DE EJEMPLO ===
   static List<Race> getSample() {
     return [
       Race(
@@ -109,7 +215,7 @@ class Race {
         name: 'Humano',
         edition: '5e',
         abilityMods: {'FUE': 1, 'DES': 1, 'CON': 1, 'INT': 1, 'SAB': 1, 'CAR': 1},
-        specialAbilities: ['Versátil', 'Idiomas adicionales'],
+        specialAbilities: ['Versátil', 'Idiomas adicionales', 'Habilidad extra'],
         description: 'Los humanos son adaptables, ambiciosos y versátiles.',
         color: Colors.brown,
         icon: Icons.person,
@@ -121,7 +227,12 @@ class Race {
         name: 'Elfo',
         edition: '5e',
         abilityMods: {'DES': 2},
-        specialAbilities: ['Visión en la oscuridad', 'Percepción aguda', 'Entrenamiento élfico'],
+        specialAbilities: [
+          'Visión en la oscuridad',
+          'Percepción aguda',
+          'Entrenamiento élfico',
+          'Trance'
+        ],
         description: 'Elegantes y longevos, con afinidad por la magia.',
         color: Colors.green,
         icon: Icons.auto_awesome,
@@ -133,7 +244,12 @@ class Race {
         name: 'Enano',
         edition: '5e',
         abilityMods: {'CON': 2},
-        specialAbilities: ['Resistencia enana', 'Visión en la oscuridad', 'Entrenamiento con herramientas'],
+        specialAbilities: [
+          'Resistencia enana',
+          'Visión en la oscuridad',
+          'Entrenamiento con herramientas',
+          'Resistencia al veneno'
+        ],
         description: 'Fuertes, resistentes y hábiles artesanos.',
         color: Colors.orange,
         icon: Icons.engineering,

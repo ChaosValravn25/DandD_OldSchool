@@ -1,3 +1,4 @@
+// lib/models/spell.dart
 class Spell {
   final String id;
   final String name;
@@ -5,14 +6,14 @@ class Spell {
   final int level;
   final String school;
   final String castingTime;
-  final String range;
+  final String spellRange;
   final String components;
   final String duration;
   final String description;
-  final String? imageUrl;  // ← NUEVO: Para Unsplash
-  final String? imagePath; // Local
   final bool isFavorite;
   final DateTime? createdAt;
+  final String? imageUrl;
+  final String? imagePath;
 
   Spell({
     required this.id,
@@ -21,49 +22,72 @@ class Spell {
     required this.level,
     required this.school,
     required this.castingTime,
-    required this.range,
+    required this.spellRange,
     required this.components,
     required this.duration,
     required this.description,
-    this.imageUrl,
-    this.imagePath,
     this.isFavorite = false,
     this.createdAt,
+    this.imageUrl,
+    this.imagePath,
   });
 
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'name': name,
-    'edition': edition,
-    'level': level,
-    'school': school,
-    'casting_time': castingTime,
-    'spell_range': range,
-    'components': components,
-    'duration': duration,
-    'description': description,
-    'image_url': imageUrl,    // ← NUEVO
-    'image_path': imagePath,
-    'is_favorite': isFavorite ? 1 : 0,
-    'created_at': createdAt?.toIso8601String(),
-  };
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'edition': edition,
+      'level': level,
+      'school': school,
+      'casting_time': castingTime,
+      'spell_range': spellRange,
+      'components': components,
+      'duration': duration,
+      'description': description,
+      'is_favorite': isFavorite ? 1 : 0,
+      'created_at': createdAt?.toIso8601String(),
+      'image_url': imageUrl,
+      'image_path': imagePath,
+    };
+  }
 
-  factory Spell.fromMap(Map<String, dynamic> map) => Spell(
-    id: map['id'] as String,
-    name: map['name'] as String,
-    edition: map['edition'] as String,
-    level: map['level'] as int? ?? 0,
-    school: map['school'] as String? ?? '',
-    castingTime: map['casting_time'] as String? ?? '',
-    range: map['spell_range'] as String? ?? '',
-    components: map['components'] as String? ?? '',
-    duration: map['duration'] as String? ?? '',
-    description: map['description'] as String? ?? '',
-    imageUrl: map['image_url'] as String?,
-    imagePath: map['image_path'] as String?,
-    isFavorite: (map['is_favorite'] as int? ?? 0) == 1,
-    createdAt: map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
-  );
+  factory Spell.fromMap(Map<String, dynamic> map) {
+    return Spell(
+      id: map['id'],
+      name: map['name'],
+      edition: map['edition'],
+      level: map['level'],
+      school: map['school'],
+      castingTime: map['casting_time'],
+      spellRange: map['spell_range'],
+      components: map['components'],
+      duration: map['duration'],
+      description: map['description'],
+      isFavorite: (map['is_favorite'] ?? 0) == 1,
+      createdAt: map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
+      imageUrl: map['image_url'],
+      imagePath: map['image_path'],
+    );
+  }
+
+  // === NUEVO: fromJson para API ===
+  factory Spell.fromJson(Map<String, dynamic> json, String? localImage) {
+    return Spell(
+      id: json['index'],
+      name: json['name'],
+      edition: '5e',
+      level: json['level'] ?? 0,
+      school: json['school']?['name'] ?? '',
+      castingTime: json['casting_time'] ?? '',
+      spellRange: json['range'] ?? '',
+      components: (json['components'] as List?)?.join(', ') ?? '',
+      duration: json['duration'] ?? '',
+      description: (json['desc'] as List?)?.join('\n') ?? '',
+      imagePath: localImage,
+      createdAt: DateTime.now(),
+    );
+  }
+
 
   static List<Spell> getSample() {
   return [
@@ -74,7 +98,7 @@ class Spell {
       level: 3,
       school: 'Evocación',
       castingTime: '1 acción',
-      range: '150 pies',
+      spellRange: '150 pies',
       components: 'V, S, M (guano de murciélago y azufre)',
       duration: 'Instantánea',
       description: 'Una raya brillante de fuego sale de tu dedo...',
@@ -82,6 +106,7 @@ class Spell {
       imagePath: null,
       isFavorite: false,
       createdAt: DateTime.now(),
+
     ),
     Spell(
       id: 'magic-missile',
@@ -90,7 +115,7 @@ class Spell {
       level: 1,
       school: 'Evocación',
       castingTime: '1 acción',
-      range: '120 pies',
+      spellRange: '120 pies',
       components: 'V, S',
       duration: 'Instantánea',
       description: 'Creas tres dardos brillantes...',
@@ -101,5 +126,7 @@ class Spell {
     ),
   ];
 }
+
+ 
   
 }

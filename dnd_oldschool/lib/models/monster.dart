@@ -83,34 +83,46 @@ class Monster {
 
     };
   }
+  
+  static Monster fromMap(Map<String, dynamic> map) {
+  return Monster(
+    id: map['id'],
+    name: map['name'],
+    edition: map['edition'],
+    type: map['type'] ?? '',
+    size: map['size'] ?? '',
+    hp: map['hp'],
+    ac: map['ac'],
+    description: map['description'] ?? '',
+    abilities: map['abilities'] ?? '',
+    imagePath: map['image_path'],
+    isFavorite: (map['is_favorite'] ?? 0) == 1,
+    createdAt: DateTime.parse(map['created_at']),
+    imageUrl: map['image_url'],
+  );
+}
 
-  /// Crea un monstruo desde un Map de SQLite
-  factory Monster.fromMap(Map<String, dynamic> map) {
-    return Monster(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      edition: map['edition'] as String,
-      type: map['type'] as String?,
-      size: map['size'] as String?,
-      hp: map['hp'] as int,
-      ac: map['ac'] as int?,
-      description: map['description'] as String? ?? '',
-      abilities: map['abilities'] as String?,
-      imagePath: map['image_path'] as String?,
-      isFavorite: (map['is_favorite'] as int?) == 1,
-      createdAt: map['created_at'] != null 
-          ? DateTime.parse(map['created_at'] as String)
-          : null,
-          imageUrl: map['image_url'] as String?,
-
-    );
-  }
+  factory Monster.fromJson(Map<String, dynamic> json, String? localImage) {
+  return Monster(
+    id: json['index'],
+    name: json['name'],
+    edition: '5e',
+    type: json['type'],
+    size: json['size'],
+    hp: json['hit_points'] ?? 0,
+    ac: json['armor_class'] ?? 0,
+    description: 'Monstruo de D&D 5e importado desde API.',
+    abilities: json['special_abilities']?.map((a) => a['name']).join(', '),
+    imagePath: localImage,
+    createdAt: DateTime.now(),
+  );
+}
 
   /// Convierte a JSON
   Map<String, dynamic> toJson() => toMap();
 
   /// Crea desde JSON
-  factory Monster.fromJson(Map<String, dynamic> json) => Monster.fromMap(json);
+  
 
   /// Datos de ejemplo mejorados
   static List<Monster> sample() => [

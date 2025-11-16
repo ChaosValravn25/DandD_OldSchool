@@ -1,25 +1,29 @@
+// lib/services/api_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String _baseUrl = 'https://www.dnd5eapi.co/api/';
+  static const String baseUrl = 'https://www.dnd5eapi.co/api';
 
-  final http.Client _client;
-
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
-
-  Future<dynamic> get(String endpoint) async {
-    final uri = Uri.parse('$_baseUrl$endpoint');
-    final response = await _client.get(uri);
-
+  Future<Map<String, dynamic>> get(String endpoint) async {
+    final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
     if (response.statusCode == 200) {
       return json.decode(response.body);
-    } else {
-      throw Exception('API Error: ${response.statusCode} - $endpoint');
     }
+    throw Exception('Failed to load $endpoint');
   }
 
-  void dispose() {
-    _client.close();
+  /// Obtiene índices de monstruos
+  Future<List<String>> getMonsterIndexes() async {
+    final data = await get('monsters');
+    final results = List<Map<String, dynamic>>.from(data['results']);
+    return results.map((e) => e['index'] as String).toList();
+  }
+
+  /// Obtiene índices de cualquier sección
+  Future<List<String>> getIndexes(String section) async {
+    final data = await get(section);
+    final results = List<Map<String, dynamic>>.from(data['results']);
+    return results.map((e) => e['index'] as String).toList();
   }
 }

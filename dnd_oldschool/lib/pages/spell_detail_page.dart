@@ -19,7 +19,7 @@ class SpellDetailPage extends StatelessWidget {
             _InfoRow('Nivel', '${spell.level}'),
             _InfoRow('Escuela', spell.school),
             _InfoRow('Tiempo de Lanzamiento', spell.castingTime),
-            _InfoRow('Rango', spell.range),
+            _InfoRow('Rango', spell.spellRange),
             _InfoRow('Componentes', spell.components),
             _InfoRow('Duración', spell.duration),
             const SizedBox(height: 16),

@@ -75,6 +75,50 @@ class CharacterClass {
     );
   }
 
+  // === AGREGAR EN CharacterClass ===
+factory CharacterClass.fromJson(Map<String, dynamic> json, String? localImage) {
+  final abilities = <String>[];
+  if (json['proficiencies'] != null) {
+    abilities.addAll((json['proficiencies'] as List).map((p) => p['name'] as String));
+  }
+  if (json['saving_throws'] != null) {
+    abilities.addAll((json['saving_throws'] as List).map((s) => 'Salvación: ${s['name']}'));
+  }
+
+  return CharacterClass(
+    id: json['index'],
+    name: json['name'],
+    edition: '5e',
+    hitDie: json['hit_die'].toString(),
+    primeRequisite: '—',
+    allowedWeapons: 'Varía',
+    allowedArmor: 'Varía',
+    description: 'Clase de D&D 5e importada desde API.',
+    abilities: abilities,
+    color: _getRandomColor(),
+    icon: _getRandomIcon(),
+    imagePath: localImage,
+    createdAt: DateTime.now(),
+  );
+}
+
+static Color _getRandomColor() {
+  final colors = [Colors.red, Colors.blue, Colors.green, Colors.purple, Colors.orange, Colors.teal];
+  return colors[DateTime.now().millisecond % colors.length];
+}
+
+static IconData _getRandomIcon() {
+  final icons = [
+    Icons.shield,
+    Icons.auto_awesome,
+    Icons.sports_martial_arts,
+    Icons.psychology,
+    Icons.whatshot,
+    Icons.healing,
+  ];
+  return icons[DateTime.now().millisecond % icons.length];
+}
+
   static Color _parseColor(String colorName) {
     switch (colorName.toLowerCase()) {
       case 'red': return Colors.red;

@@ -20,14 +20,22 @@ void main() async {
   final db = DatabaseHelper.instance;
   final sync = SyncService();
 
-  // Sincronizar solo si no hay datos
+  // === SINCRONIZACIÓN INICIAL: SOLO SI NO HAY DATOS ===
   if (!await db.hasData()) {
-    await sync.syncMonsters();
-    await sync.syncSpells(); 
-    await sync.syncClasses();
-    await sync.syncRaces();
-    await sync.syncEquipment();
+    print('No hay datos locales. Iniciando sincronización completa...');
+    
+    await sync.syncAll(
+      onProgress: (current, total) {
+        final progress = (current / total * 100).toStringAsFixed(1);
+        print('Sincronización: $progress% ($current/$total)');
+      },
+    );
+
+    print('Sincronización inicial completada.');
+  } else {
+    print('Datos locales encontrados. Saltando sincronización inicial.');
   }
+
 
   // Inicializar servicio de preferencias
   await PreferencesService.instance.init();

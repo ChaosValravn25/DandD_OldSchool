@@ -58,8 +58,83 @@ class _ClassesPageState extends State<ClassesPage> {
     );
 
     try {
-      await _syncService.syncClasses();
-      await _loadClasses();
+      // === REEMPLAZAR EL MÉTODO _syncClasses() COMPLETO ===
+Future<void> _syncClasses() async {
+  setState(() => _loading = true);
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Sincronizando Clases'),
+        content: StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LinearProgressIndicator(
+                  value: _syncService.progress > 0 ? _syncService.progress : null,
+                  backgroundColor: Colors.grey.shade300,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.brown),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _syncService.progress > 0
+                      ? '${(_syncService.progress * 100).toStringAsFixed(0)}%'
+                      : 'Iniciando...',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    },
+  );
+
+  try {
+    await _syncService.syncClasses(
+      onProgress: (current, total) {
+        setState(() {
+          _syncService.progress = current / total;
+        });
+        // Forzar actualización del diálogo
+        if (mounted) {
+          Navigator.of(context).pop();
+          _syncClasses(); // Reabrir con nuevo progreso
+        }
+      },
+    );
+
+    await _loadClasses();
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Clases sincronizadas correctamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } finally {
+    setState(() {
+      _loading = false;
+      _syncService.progress = 0.0;
+    });
+  }
+}
       
       if (mounted) {
         Navigator.pop(context);

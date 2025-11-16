@@ -1,7 +1,6 @@
 // lib/screens/image_manager_screen.dart
 import 'package:flutter/material.dart';
 import '../services/image_downloader.dart';
-import 'dart:io';
 
 class ImageManagerScreen extends StatefulWidget {
   const ImageManagerScreen({super.key});
@@ -317,7 +316,7 @@ class _ImageManagerScreenState extends State<ImageManagerScreen> {
                 Icon(Icons.cloud_download, color: Colors.green),
                 SizedBox(width: 8),
                 Text(
-                  'Fuentes de Imágenes D&D',
+                  'Fuentes de Imágenes',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -327,36 +326,19 @@ class _ImageManagerScreenState extends State<ImageManagerScreen> {
             ),
             const Divider(),
             const SizedBox(height: 8),
-            _buildSourceItem('D&D 5e API', '✅ Oficial', Colors.green),
-            _buildSourceItem('Pexels', '✅ Fantasía HD', Colors.blue),
-            _buildSourceItem('DiceBear', '✅ Avatares generados', Colors.purple),
-            _buildSourceItem('Boring Avatars', '✅ Estilo artístico', Colors.orange),
-            _buildSourceItem('RoboHash', '✅ Monstruos únicos', Colors.red),
-            _buildSourceItem('UI Avatars', '✅ Iniciales', Colors.teal),
-            _buildSourceItem('Multiavatar', '✅ Personalizados', Colors.indigo),
-            _buildSourceItem('Placeholders', '✅ Texto', Colors.grey),
+            _buildSourceItem('D&D 5e API', '✅ Principal', Colors.green),
+            _buildSourceItem('Unsplash', '✅ Fotografías', Colors.blue),
+            _buildSourceItem('Picsum', '✅ Aleatorias', Colors.orange),
+            _buildSourceItem('RoboHash', '✅ Generadas', Colors.purple),
+            _buildSourceItem('Placeholder', '✅ Texto', Colors.grey),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.amber.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info, color: Colors.amber.shade700, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Todas las fuentes están optimizadas para contenido de D&D y fantasía',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.amber.shade900,
-                      ),
-                    ),
-                  ),
-                ],
+            Text(
+              'Las imágenes se intentan descargar en orden de prioridad '
+              'hasta encontrar una fuente disponible.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+                fontStyle: FontStyle.italic,
               ),
             ),
           ],
