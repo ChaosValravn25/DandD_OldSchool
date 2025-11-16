@@ -1,5 +1,7 @@
 // lib/services/sync_service.dart
+
 import 'dart:convert';
+import 'dart:math' show min;
 import 'package:http/http.dart' as http;
 import 'package:dnd_oldschool/services/api_service.dart';
 import 'package:dnd_oldschool/services/image_downloader.dart';
@@ -11,6 +13,12 @@ import 'package:dnd_oldschool/models/race.dart';
 import 'package:dnd_oldschool/models/equipment.dart';
 import 'package:flutter/material.dart';
 
+// === Typedef correcto ===
+typedef SyncSectionFunction = Future<Map<String, dynamic>> Function({
+  int? limit,
+  required void Function(int current, int total) onProgress,
+});
+
 class SyncService {
   final ApiService _api = ApiService();
   final DatabaseHelper _db = DatabaseHelper.instance;
@@ -20,13 +28,15 @@ class SyncService {
   // === MÉTODO AUXILIAR: Obtener índices ===
   Future<List<String>> _getIndexes(String section) async {
     final data = await _api.get(section);
-    return (data['results'] as List).map((e) => e['index'] as String).toList();
+    return (data['results'] as List<dynamic>)
+        .map((e) => e['index'] as String)
+        .toList();
   }
 
-  // === 1. SINCRONIZAR MONSTRUOS (con límite opcional) ===
+  // === 1. SINCRONIZAR MONSTRUOS ===
   Future<Map<String, dynamic>> syncMonsters({
     int? limit,
-    required Function(int current, int total) onProgress,
+    required void Function(int current, int total) onProgress,
   }) async {
     return await _syncSection(
       section: 'monsters',
@@ -39,35 +49,40 @@ class SyncService {
 
   // === 2. SINCRONIZAR CLASES ===
   Future<Map<String, dynamic>> syncClasses({
-    required Function(int current, int total) onProgress,
+    int? limit,
+    required void Function(int current, int total) onProgress,
   }) async {
     return await _syncSection(
       section: 'classes',
+      limit: limit,
       insert: (obj) => _db.insertClass(obj),
       fromJson: (json, img) => CharacterClass.fromJson(json, img),
       onProgress: onProgress,
     );
   }
-  
 
   // === 3. SINCRONIZAR RAZAS ===
   Future<Map<String, dynamic>> syncRaces({
-    required Function(int current, int total) onProgress,
+    int? limit,
+    required void Function(int current, int total) onProgress,
   }) async {
     return await _syncSection(
       section: 'races',
+      limit: limit,
       insert: (obj) => _db.insertRace(obj),
       fromJson: (json, img) => Race.fromJson(json, img),
       onProgress: onProgress,
     );
   }
-  
+
   // === 4. SINCRONIZAR HECHIZOS ===
   Future<Map<String, dynamic>> syncSpells({
-    required Function(int current, int total) onProgress,
+    int? limit,
+    required void Function(int current, int total) onProgress,
   }) async {
     return await _syncSection(
       section: 'spells',
+      limit: limit,
       insert: (obj) => _db.insertSpell(obj),
       fromJson: (json, img) => Spell.fromJson(json, img),
       onProgress: onProgress,
@@ -76,27 +91,29 @@ class SyncService {
 
   // === 5. SINCRONIZAR EQUIPO ===
   Future<Map<String, dynamic>> syncEquipment({
-    required Function(int current, int total) onProgress,
+    int? limit,
+    required void Function(int current, int total) onProgress,
   }) async {
     return await _syncSection(
       section: 'equipment',
+      limit: limit,
       insert: (obj) => _db.insertEquipment(obj),
       fromJson: (json, img) => Equipment.fromJson(json, img),
       onProgress: onProgress,
     );
   }
 
-  // === MÉTODO GENÉRICO DE SINCRONIZACIÓN (REUTILIZABLE) ===
+  // === MÉTODO GENÉRICO PARA SINCRONIZAR ===
   Future<Map<String, dynamic>> _syncSection({
     required String section,
     int? limit,
     required Future<void> Function(dynamic) insert,
     required dynamic Function(Map<String, dynamic>, String?) fromJson,
-    required Function(int current, int total) onProgress,
+    required void Function(int current, int total) onProgress,
   }) async {
     try {
       final indexes = await _getIndexes(section);
-      final total = limit != null ? limit.clamp(0, indexes.length) : indexes.length;
+      final total = limit != null ? min(limit, indexes.length) : indexes.length;
       final toSync = limit != null ? indexes.take(total).toList() : indexes;
 
       int synced = 0;
@@ -133,11 +150,12 @@ class SyncService {
     }
   }
 
-  // === 6. SINCRONIZAR TODO (PROGRESO GLOBAL) ===
+  // === 6. SINCRONIZAR TODO (CORREGIDO) ===
   Future<Map<String, dynamic>> syncAll({
-    required Function(int current, int total) onProgress,
+    required void Function(int current, int total) onProgress,
   }) async {
-    final sections = [
+    // === Lista con tipo explícito ===
+    final List<Map<String, Object>> sections = [
       {'name': 'monsters', 'sync': syncMonsters},
       {'name': 'classes', 'sync': syncClasses},
       {'name': 'races', 'sync': syncRaces},
@@ -148,26 +166,27 @@ class SyncService {
     int totalItems = 0;
     int currentItem = 0;
 
-    // Contar total
-    for (var s in sections) {
+    // === Calcular total de elementos ===
+    for (final s in sections) {
       final indexes = await _getIndexes(s['name'] as String);
-      totalItems += indexes.length;
+      totalItems += indexes.length; // ← length es int
     }
 
     final results = <String, Map<String, dynamic>>{};
 
-    for (var s in sections) {
+    // === Sincronizar cada sección ===
+    for (final s in sections) {
       final section = s['name'] as String;
-      final syncFn = s['sync'] as Future<Map<String, dynamic>> Function({
-        int? limit,
-        required Function(int, int) onProgress,
-      });
+      final SyncSectionFunction syncFn = s['sync'] as SyncSectionFunction; // ← Casteo seguro
 
-      final result = await syncFn(onProgress: (c, t) {
-        currentItem += c;
-        progress = currentItem / totalItems;
-        onProgress(currentItem, totalItems);
-      });
+      final result = await syncFn(
+        limit: null,
+        onProgress: (c, t) {
+          currentItem += c; // ← c es int
+          progress = currentItem / totalItems;
+          onProgress(currentItem, totalItems);
+        },
+      );
 
       results[section] = result;
     }
@@ -180,7 +199,7 @@ class SyncService {
     };
   }
 
-  // === ESTADÍSTICAS DE SINCRONIZACIÓN ===
+  // === ESTADÍSTICAS ===
   Future<Map<String, dynamic>> getSyncStats() async {
     final totalMonsters = await _db.getMonsterCount();
     final apiMonsters = await _db.getApiMonsterCount();
@@ -193,7 +212,6 @@ class SyncService {
     };
   }
 
-  // === LIMPIAR MONSTRUOS DE API ===
   Future<void> clearSync() async {
     await _db.deleteApiMonsters();
   }

@@ -59,61 +59,55 @@ class _ClassesPageState extends State<ClassesPage> {
 
     try {
       // === REEMPLAZAR EL MÉTODO _syncClasses() COMPLETO ===
-Future<void> _syncClasses() async {
+Future<void> _syncClasses({int limit = 15}) async {
   setState(() => _loading = true);
 
+  // ---------- Ventana con progreso ----------
   showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Sincronizando Clases'),
-        content: StatefulBuilder(
-          builder: (context, setDialogState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LinearProgressIndicator(
-                  value: _syncService.progress > 0 ? _syncService.progress : null,
-                  backgroundColor: Colors.grey.shade300,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.brown),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _syncService.progress > 0
-                      ? '${(_syncService.progress * 100).toStringAsFixed(0)}%'
-                      : 'Iniciando...',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            );
-          },
+    builder: (context) => AlertDialog(
+      title: const Text("Sincronizando Clases"),
+      content: StatefulBuilder(
+        builder: (context, setDialogState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LinearProgressIndicator(
+              value: _syncService.progress > 0 ? _syncService.progress : null,
+              backgroundColor: Colors.grey.shade300,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.brown),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _syncService.progress > 0
+                  ? '${(_syncService.progress * 100).toStringAsFixed(0)}%'
+                  : "Iniciando...",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
-      );
-    },
+      ),
+    ),
   );
 
   try {
+    // ---------- Inicia sincronización ----------
     await _syncService.syncClasses(
+      limit: limit, // <-- ahora SÍ existe
       onProgress: (current, total) {
         setState(() {
           _syncService.progress = current / total;
         });
-        // Forzar actualización del diálogo
-        if (mounted) {
-          Navigator.of(context).pop();
-          _syncClasses(); // Reabrir con nuevo progreso
-        }
       },
     );
 
     await _loadClasses();
 
     if (mounted) {
-      Navigator.pop(context);
+      Navigator.pop(context); // Cierra el diálogo
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Clases sincronizadas correctamente'),
+          content: Text("Clases sincronizadas correctamente"),
           backgroundColor: Colors.green,
         ),
       );
@@ -123,7 +117,7 @@ Future<void> _syncClasses() async {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text("Error al sincronizar clases: $e"),
           backgroundColor: Colors.red,
         ),
       );
@@ -135,6 +129,8 @@ Future<void> _syncClasses() async {
     });
   }
 }
+    
+
       
       if (mounted) {
         Navigator.pop(context);

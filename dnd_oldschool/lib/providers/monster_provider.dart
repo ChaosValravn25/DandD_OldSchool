@@ -1,12 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../models/monster.dart';
 import '../services/database_helper.dart';
-import '../services/api_service.dart';
+import '../services/sync_service.dart';
 
 /// Provider para gestionar el estado de los monstruos
 class MonsterProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
-  final ApiService _api = ApiService();
+  final SyncService _syncService = SyncService();
+  
   List<Monster> _monsters = [];
   List<Monster> _filteredMonsters = [];
   String _selectedEdition = 'Todas';
@@ -14,6 +15,10 @@ class MonsterProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   
+  // Variables para el progreso de sincronización
+  int _syncProgress = 0;
+  int _syncTotal = 0;
+  bool _isSyncing = false;
 
   // Getters
   List<Monster> get monsters => _filteredMonsters.isEmpty ? _monsters : _filteredMonsters;
@@ -23,6 +28,12 @@ class MonsterProvider with ChangeNotifier {
   String? get error => _error;
   int get totalMonsters => _monsters.length;
   int get favoriteCount => _monsters.where((m) => m.isFavorite).length;
+  
+  // Getters para sincronización
+  bool get isSyncing => _isSyncing;
+  int get syncProgress => _syncProgress;
+  int get syncTotal => _syncTotal;
+  double get syncPercentage => _syncTotal > 0 ? _syncProgress / _syncTotal : 0.0;
 
   /// Lista de ediciones disponibles
   List<String> get availableEditions {
@@ -253,65 +264,85 @@ class MonsterProvider with ChangeNotifier {
     return buffer.toString();
   }
 
+  // ===============================================================
+  // SINCRONIZACIÓN CON API D&D 5e
+  // ===============================================================
+
   /// Importa monstruos desde la API oficial D&D 5e
-Future<void> importMonstersFromApi() async {
-  _isLoading = true;
-  notifyListeners();
+  /// 
+  ///  - Número máximo de monstruos a sincronizar (null = todos)
+  /// Retorna un Map con los resultados de la sincronización
+  Future<Map<String, dynamic>> importMonstersFromApi({int? limit}) async {
+    try {
+      _isSyncing = true;
+      _syncProgress = 0;
+      _syncTotal = 0;
+      _error = null;
+      notifyListeners();
 
-  try {
-    // 1. Obtener listado BASE
-    final listResponse = await _api.get("monsters");
-    final results = listResponse["results"] as List;
-
-    // 2. Por cada "index", obtener detalles
-    for (var m in results) {
-      final index = m["index"];
-      final detail = await _api.get("monsters/$index");
-
-      // Construir imagen URL estándar de la API
-      final imageUrl =
-          "https://www.dnd5eapi.co/api/images/monsters/$index.png";
-
-      final monster = Monster(
-        id: index,
-        name: detail["name"] ?? "Unknown",
-        edition: "5e",
-        type: detail["type"],
-        size: detail["size"],
-        hp: detail["hit_points"] ?? 1,
-        ac: detail["armor_class"] is List
-            ? detail["armor_class"][0]["value"]
-            : detail["armor_class"],
-        description: detail["desc"] != null
-            ? (detail["desc"] as List).join("\n")
-            : "No description.",
-        abilities: detail["special_abilities"] != null
-            ? detail["special_abilities"]
-                .map((a) => "${a["name"]}: ${a["desc"]}")
-                .join("\n")
-            : "",
-        imageUrl: imageUrl,
-        isFavorite: false,
-        createdAt: DateTime.now(),
+      final results = await _syncService.syncMonsters(
+        limit: limit,
+        onProgress: (current, total) {
+          _syncProgress = current;
+          _syncTotal = total;
+          notifyListeners();
+        },
       );
 
-      // 3. Agregar a la base local
-      try {
-        await _db.createMonster(monster);
-      } catch (_) {
-        // si ya existe, lo ignoramos (no crashea)
-      }
+      // Recargar monstruos después de sincronizar
+      _monsters = await _db.readAllMonsters();
+      _applyFilters();
+      
+      return results;
+    } catch (e) {
+      _error = "Error al importar monstruos desde API: $e";
+      return {
+        'success': false,
+        'message': _error!,
+      };
+    } finally {
+      _isSyncing = false;
+      _syncProgress = 0;
+      _syncTotal = 0;
+      notifyListeners();
     }
-
-    // 4. Recargar lista local
-    await loadMonsters();
-  } catch (e) {
-    _error = "Error al importar monstruos: $e";
   }
 
-  _isLoading = false;
-  notifyListeners();
-}
+  /// Obtiene estadísticas de sincronización
+  Future<Map<String, dynamic>> getSyncStats() async {
+    try {
+      return await _syncService.getSyncStats();
+    } catch (e) {
+      _error = 'Error al obtener estadísticas: $e';
+      notifyListeners();
+      return {
+        'total_monsters': 0,
+        'synced_from_api': 0,
+        'local_only': 0,
+      };
+    }
+  }
 
+  /// Limpia todos los monstruos sincronizados de la API
+  Future<void> clearApiMonsters() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
 
+      await _syncService.clearSync();
+      await loadMonsters();
+    } catch (e) {
+      _error = 'Error al limpiar monstruos de API: $e';
+      notifyListeners();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _syncService.dispose();
+    super.dispose();
+  }
 }

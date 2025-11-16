@@ -30,72 +30,70 @@ class _SpellsListPage extends State<SpellsListPage> {
   /// =====================================================
   ///   METODO CORRECTO _syncSpells()
   /// =====================================================
-  Future<void> _syncSpells() async {
-    setState(() => _loading = true);
+  Future<void> _syncSpells({int limit = 50}) async {
+  setState(() => _loading = true);
 
-    // ---------- Ventana Modal con Progreso ----------
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text("Sincronizando Hechizos"),
-        content: StatefulBuilder(
-          builder: (context, setDialogState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              LinearProgressIndicator(
-                value: _syncService.progress > 0 ? _syncService.progress : null,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _syncService.progress > 0
-                    ? '${(_syncService.progress * 100).toStringAsFixed(0)}%'
-                    : "Iniciando...",
-              ),
-            ],
-          ),
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      title: const Text("Sincronizando Hechizos"),
+      content: StatefulBuilder(
+        builder: (context, setDialogState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LinearProgressIndicator(
+              value: _syncService.progress > 0 ? _syncService.progress : null,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _syncService.progress > 0
+                  ? '${(_syncService.progress * 100).toStringAsFixed(0)}%'
+                  : "Iniciando...",
+            ),
+          ],
         ),
       ),
+    ),
+  );
+
+  try {
+    await _syncService.syncSpells(
+      limit: limit,
+      onProgress: (current, total) {
+        setState(() => _syncService.progress = current / total);
+      },
     );
 
-    try {
-      // ---------- Comienza descarga de la API ----------
-      await _syncService.syncSpells(
-        onProgress: (current, total) {
-          setState(() {
-            _syncService.progress = current / total;
-          });
-        },
+    await _loadSpells();
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Hechizos sincronizados correctamente"),
+          backgroundColor: Colors.green,
+        ),
       );
-
-      await _loadSpells();
-
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Hechizos sincronizados correctamente"),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error al sincronizar hechizos: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      setState(() {
-        _loading = false;
-        _syncService.progress = 0.0;
-      });
     }
+  } catch (e) {
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error al sincronizar hechizos: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } finally {
+    setState(() {
+      _loading = false;
+      _syncService.progress = 0.0;
+    });
   }
+}
+
 
   /// =====================================================
   ///   WIDGET PRINCIPAL

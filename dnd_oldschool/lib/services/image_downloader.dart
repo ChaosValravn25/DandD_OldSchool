@@ -1,6 +1,7 @@
 // lib/services/image_downloader.dart
 import 'dart:io';
 import 'dart:async';
+import 'dart:math' show min;
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -84,112 +85,107 @@ class ImageDownloader {
 
   /// Fuentes de imágenes por sección
   static List<Map<String, dynamic>> _getImageSources(String section, String name, String index) {
-    final nameSlug = name.toLowerCase()
-        .replaceAll(' ', '-')
-        .replaceAll("'", '')
-        .replaceAll(',', '')
-        .replaceAll(RegExp(r'[^a-z0-9\-]'), '');
-    final nameEncoded = Uri.encodeComponent(name);
+  final nameSlug = name.toLowerCase()
+      .replaceAll(' ', '-')
+      .replaceAll("'", '')
+      .replaceAll(',', '')
+      .replaceAll(RegExp(r'[^a-z0-9\-]'), '');
+  final nameEncoded = Uri.encodeComponent(name);
 
-    // === FUENTES COMUNES ===
-    final common = [
-      {'name': 'D&D Beyond', 'url': 'https://www.dndbeyond.com/avatars/$section/$index.png'},
-      {'name': '5e.tools', 'url': 'https://5e.tools/img/$section/$index.png'},
-      {'name': 'AideDD', 'url': 'https://www.aidedd.org/dnd/images/$index.jpg'},
-      {'name': 'UI Avatars', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=000000&color=fff'},
-      {'name': 'Placeholder', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, 15)}'},
-      {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
-      {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
-      
-    ];
+  // === FUENTES COMUNES (para todas las secciones) ===
+  final common = [
+    {'name': 'AideDD', 'url': 'https://www.aidedd.org/dnd/images/$index.jpg'}, // OFICIAL
+    {'name': '5e.tools', 'url': 'https://5e.tools/img/$section/$index.png'},
+    {'name': 'D&D Beyond', 'url': 'https://www.dndbeyond.com/avatars/$section/$index.png'},
+    {'name': 'UI Avatars', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=8B4513&color=FFD700'},
+    {'name': 'Placeholder D&D', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, min(15, name.length))}'},
+  ];
 
-    // === POR SECCIÓN ===
-    switch (section) {
-      case 'monsters':
-        return [
-          // === TUS FUENTES ORIGINALES (100% PRESERVADAS) ===
-          {'name': 'D&D 5e API', 'url': 'https://www.dnd5eapi.co/api/monsters/$index/image'},
-          {'name': 'Open5e Monster', 'url': 'https://api.open5e.com/monsters/$index/image'},
-          {'name': 'https://forgottenrealms.fandom.com/wiki/', 'url': 'https://forgottenrealms.fandom.com/wiki/$nameSlug'},
-          {'name': 'D&D Beyond Official', 'url': 'https://www.dndbeyond.com/avatars/monsters/$index.png'},
-          {'name': 'D&D Wiki','url': 'https://www.dandwiki.com/wiki/Special:FilePath/${nameSlug.capitalize()}-5e.png'},
-          {'name': 'DMs Guild', 'url': 'https://www.dmsguild.com/avatars/monsters/$index.png'},
-          {'name': 'Fantasy Grounds', 'url': 'https://www.fantasygrounds.com/images/monsters/$index.png'},
-          {'name': 'Roll20 Compendium', 'url': 'https://roll20.net/compendium/dnd5e/$index/content?avatar=1'},
-          {'name': '5e.tools (Official Art)', 'url': 'https://5e.tools/img/monsters/$index.png'},
-          {'name': 'AideDD (Wizards Art)', 'url': 'https://www.aidedd.org/dnd/images/$index.jpg'},
-          {'name': 'D&D Beyond Search', 'url': 'https://www.dndbeyond.com/search?q=$nameEncoded&type=monster'},
-          {'name': 'Open5e Official', 'url': 'https://api.open5e.com/monsters/$index/image'},
-          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'Kobold Press', 'url': 'https://koboldpress.com/wp-content/uploads/monsters/$nameSlug.jpg'},
-          // === Fallbacks genéricos ===
-          {'name': 'RoboHash Monsters', 'url': 'https://robohash.org/$nameSlug?set=set2&size=400x400'},
-          {'name': 'Wikimedia','url': 'https://commons.wikimedia.org/wiki/Special:FilePath/$nameEncoded',},
-          {'name': 'Unsplash Fantasy', 'url': 'https://source.unsplash.com/400x400/?fantasy,monster,$nameEncoded'},
-          {'name': 'LoremFlickr','url': 'https://loremflickr.com/400/400/dragon,fantasy,monster'},
-        ];
+  // === POR SECCIÓN ===
+  switch (section) {
+    // ========================================
+    // 1. MONSTRUOS
+    // ========================================
+    case 'monsters':
+      return [
+        // OFICIALES (Monster Manual)
+        {'name': 'AideDD Official', 'url': 'https://www.aidedd.org/dnd/images/$index.jpg'}, // 95% éxito
+        {'name': '5e.tools Monster', 'url': 'https://5e.tools/img/monsters/$index.png'},
+        {'name': 'D&D Beyond Monster', 'url': 'https://www.dndbeyond.com/avatars/monsters/$index.png'},
 
-      case 'spells':
-        return [
-          ...common,
-          {'name': 'D&D Beyond Spell', 'url': 'https://www.dndbeyond.com/avatars/spells/$index.png'},
-          {'name': '5e.tools Spell', 'url': 'https://5e.tools/img/spells/$index.png'},
-          {'name': 'DiceBear Magic', 'url': 'https://api.dicebear.com/7.x/micah/png?seed=$index&size=400'},
-          {'name': 'UI Avatars Spell', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=00008B&color=fff'},
-          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'RoboHash Spell', 'url': 'https://robohash.org/$nameSlug?set=set3&size=400x400'},
-          {'name': 'Placeholder', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, 15)}'},
-        ];
+        // WIKIS (buenas imágenes, pero scrape)
+        {'name': 'D&D Fandom ES', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
+        {'name': 'Forgotten Realms ES', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
 
-      case 'classes':
-        return [
-          ...common,
-          {'name': 'D&D Beyond Class', 'url': 'https://www.dndbeyond.com/avatars/classes/$index.png'},
-          {'name': '5e.tools Class', 'url': 'https://5e.tools/img/classes/$index.png'},
-          {'name': 'UI Avatars Class', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=4B0082&color=fff'},
-          {'name': 'RoboHash Class', 'url': 'https://robohash.org/$nameSlug?set=set1&size=400x400'}, 
-          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'DiceBear Adventurer', 'url': 'https://api.dicebear.com/7.x/adventurer/png?seed=$nameSlug&size=400'},
-          {'name': 'Placeholder', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, 15)}'},
-          
-        ];
+        // FANTASY-LIKE
+        {'name': 'RoboHash Monster', 'url': 'https://robohash.org/$nameSlug?set=set2&size=400x400'}, // set2 = monstruos
+        {'name': 'Unsplash Fantasy', 'url': 'https://source.unsplash.com/400x400/?fantasy,monster,$nameEncoded'},
+        {'name': 'DiceBear Monster', 'url': 'https://api.dicebear.com/7.x/thumbs/png?seed=$nameSlug&size=400'},
+        ...common,
+      ];
 
-      case 'races':
-        return [
-          ...common,
-          {'name': 'D&D Beyond Race', 'url': 'https://www.dndbeyond.com/avatars/races/$index.png'},
-          {'name': '5e.tools Race', 'url': 'https://5e.tools/img/races/$index.png'},
-          {'name': 'DiceBear Avataaars', 'url': 'https://api.dicebear.com/7.x/avataaars/png?seed=$nameSlug&size=400'},
-          {'name': 'Wikimedia','url': 'https://commons.wikimedia.org/wiki/Special:FilePath/$nameEncoded'},
-          {'name': 'RoboHash Race', 'url': 'https://robohash.org/$nameSlug?set=set4&size=400x400'},
-          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'Placeholder', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, 15)}'},
-          
-        ];
+    // ========================================
+    // 2. HECHIZOS
+    // ========================================
+    case 'spells':
+      return [
+        {'name': '5e.tools Spell', 'url': 'https://5e.tools/img/spells/$index.png'},
+        {'name': 'D&D Beyond Spell', 'url': 'https://www.dndbeyond.com/avatars/spells/$index.png'},
+        {'name': 'DiceBear Magic', 'url': 'https://api.dicebear.com/7.x/micah/png?seed=$index&size=400&background=00008B&color=FFD700'},
+        {'name': 'RoboHash Spell', 'url': 'https://robohash.org/$nameSlug?set=set3&size=400x400'},
+        {'name': 'UI Avatars Magic', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=4B0082&color=FFD700'},
+        ...common,
+      ];
 
-      case 'equipment':
-        return [
-          ...common,
-          {'name': 'D&D Beyond Equipment', 'url': 'https://www.dndbeyond.com/avatars/equipment/$index.png'},
-          {'name': '5e.tools Equipment', 'url': 'https://5e.tools/img/equipment/$index.png'},
-          {'name': 'Open5e Equipment', 'url': 'https://api.open5e.com/equipment/$index/image'},
-          {'name': 'UI Avatars Equipment', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=556B2F&color=fff'},
-          {'name': 'https://dnd5e.fandom.com/es/wiki/$nameSlug', 'url': 'https://dnd5e.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug', 'url': 'https://forgottenrealms.fandom.com/es/wiki/$nameSlug'},
-          {'name': 'RoboHash Item', 'url': 'https://robohash.org/$nameSlug?set=set4&size=400x400'},
-        ];
+    // ========================================
+    // 3. CLASES
+    // ========================================
+    case 'classes':
+      return [
+        {'name': '5e.tools Class', 'url': 'https://5e.tools/img/classes/$index.png'},
+        {'name': 'D&D Beyond Class', 'url': 'https://www.dndbeyond.com/avatars/classes/$index.png'},
+        {'name': 'DiceBear Adventurer', 'url': 'https://api.dicebear.com/7.x/adventurer/png?seed=$nameSlug&size=400'},
+        {'name': 'RoboHash Class', 'url': 'https://robohash.org/$nameSlug?set=set1&size=400x400'},
+        {'name': 'UI Avatars Class', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=8B4513&color=FFD700'},
+        ...common,
+      ];
 
-      default:
-        return [
-          ...common,
-          {'name': 'Placeholder', 'url': 'https://placehold.co/400x400/8B4513/FFD700/png?text=${nameEncoded.substring(0, 15)}'},
-        ];
-    }
+    // ========================================
+    // 4. RAZAS
+    // ========================================
+    case 'races':
+      return [
+        {'name': '5e.tools Race', 'url': 'https://5e.tools/img/races/$index.png'},
+        {'name': 'D&D Beyond Race', 'url': 'https://www.dndbeyond.com/avatars/races/$index.png'},
+        {'name': 'DiceBear Avataaars', 'url': 'https://api.dicebear.com/7.x/avataaars/png?seed=$nameSlug&size=400'},
+        {'name': 'RoboHash Race', 'url': 'https://robohash.org/$nameSlug?set=set4&size=400x400'},
+        {'name': 'UI Avatars Race', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=228B22&color=FFD700'},
+        ...common,
+      ];
+
+    // ========================================
+    // 5. EQUIPO
+    // ========================================
+    case 'equipment':
+      return [
+        {'name': '5e.tools Equipment', 'url': 'https://5e.tools/img/equipment/$index.png'},
+        {'name': 'D&D Beyond Equipment', 'url': 'https://www.dndbeyond.com/avatars/equipment/$index.png'},
+        {'name': 'DiceBear Item', 'url': 'https://api.dicebear.com/7.x/thumbs/png?seed=$nameSlug&size=400&background=556B2F&color=FFD700'},
+        {'name': 'RoboHash Item', 'url': 'https://robohash.org/$nameSlug?set=set5&size=400x400'},
+        {'name': 'UI Avatars Item', 'url': 'https://ui-avatars.com/api/?name=${nameEncoded}&size=400&background=8B4513&color=FFD700'},
+        ...common,
+      ];
+
+    // ========================================
+    // DEFAULT
+    // ========================================
+    default:
+      return [
+        ...common,
+        {'name': 'RoboHash Generic', 'url': 'https://robohash.org/$nameSlug?size=400x400'},
+      ];
   }
+}
 
   // === VALIDACIÓN DE IMÁGENES ===
   static bool _isValidImageData(Uint8List bytes) {
