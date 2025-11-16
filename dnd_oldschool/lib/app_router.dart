@@ -16,7 +16,6 @@ import 'pages/classes_page.dart';
 import 'pages/races_page.dart';
 import 'pages/equipment_page.dart';
 import 'pages/rules_page.dart';
-import 'pages/sync_page.dart';
 
 // Gestiona todas las rutas de navegación de la aplicación
 class AppRouter {

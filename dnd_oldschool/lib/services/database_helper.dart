@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import '../models/monster.dart';
@@ -58,7 +57,7 @@ class DatabaseHelper {
         abilities TEXT,
         image_path TEXT,
         is_favorite $boolType,
-        created_at TEXT
+        created_at TEXT,
         image_url TEXT
       )
     ''');
@@ -76,7 +75,7 @@ class DatabaseHelper {
         components TEXT,
         duration TEXT,
         description TEXT,
-        is_favorite $boolType
+        is_favorite $boolType,
         created_at TEXT
       )
     ''');
