@@ -12,6 +12,7 @@ class Monster {
   final String? imagePath;
   final bool isFavorite;
   final DateTime? createdAt;
+  final String? imageUrl;
 
   Monster({
     required this.id,
@@ -26,6 +27,7 @@ class Monster {
     this.imagePath,
     this.isFavorite = false,
     this.createdAt,
+    this.imageUrl,
   });
 
   /// Constructor para crear una copia con algunos campos modificados
@@ -42,6 +44,8 @@ class Monster {
     String? imagePath,
     bool? isFavorite,
     DateTime? createdAt,
+    String? imageUrl,
+    
   }) {
     return Monster(
       id: id ?? this.id,
@@ -56,6 +60,7 @@ class Monster {
       imagePath: imagePath ?? this.imagePath,
       isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 
@@ -74,6 +79,8 @@ class Monster {
       'image_path': imagePath,
       'is_favorite': isFavorite ? 1 : 0,
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      'image_url': imageUrl,
+
     };
   }
 
@@ -94,6 +101,8 @@ class Monster {
       createdAt: map['created_at'] != null 
           ? DateTime.parse(map['created_at'] as String)
           : null,
+          imageUrl: map['image_url'] as String?,
+
     );
   }
 

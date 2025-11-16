@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -31,7 +32,7 @@ class _MonstersListPageState extends State<MonstersListPage> {
           appBar: AppBar(
             title: const Text('Bestiario Old School'),
             actions: [
-              // Botón de compartir bestiario completo
+              // Compartir bestiario completo
               IconButton(
                 icon: const Icon(Icons.share),
                 tooltip: 'Compartir bestiario',
@@ -43,6 +44,47 @@ class _MonstersListPageState extends State<MonstersListPage> {
                   );
                 },
               ),
+
+              // Importar desde API oficial
+              IconButton(
+                icon: const Icon(Icons.cloud_download),
+                tooltip: 'Importar desde API oficial',
+                onPressed: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Importar Monstruos'),
+                      content: const Text(
+                        '¿Desea importar monstruos desde la API oficial de D&D 5e?\n'
+                        'Se descargarán imágenes y datos automáticamente.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancelar'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Importar'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmed == true && mounted) {
+                    await provider.importMonstersFromApi();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Importación iniciada. Revisa la pestaña de Sincronización.'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+
               // Menú de ordenamiento
               PopupMenuButton<String>(
                 icon: const Icon(Icons.sort),
@@ -92,6 +134,9 @@ class _MonstersListPageState extends State<MonstersListPage> {
                             },
                           )
                         : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onChanged: (value) => provider.searchMonsters(value),
                 ),
@@ -103,7 +148,6 @@ class _MonstersListPageState extends State<MonstersListPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
                   children: [
-                    // Filtro por edición
                     ...provider.availableEditions.map((edition) {
                       final isSelected = provider.selectedEdition == edition;
                       return Padding(
@@ -111,6 +155,7 @@ class _MonstersListPageState extends State<MonstersListPage> {
                         child: FilterChip(
                           label: Text(edition),
                           selected: isSelected,
+                          selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                           onSelected: (selected) {
                             provider.filterByEdition(edition);
                           },
@@ -118,11 +163,11 @@ class _MonstersListPageState extends State<MonstersListPage> {
                       );
                     }),
                     const SizedBox(width: 8),
-                    // Filtro de favoritos
                     FilterChip(
                       avatar: const Icon(Icons.star, size: 18),
                       label: const Text('Favoritos'),
                       selected: provider.showOnlyFavorites,
+                      selectedColor: Colors.amber.withOpacity(0.2),
                       onSelected: (selected) {
                         provider.toggleShowFavorites(selected);
                       },
@@ -132,8 +177,7 @@ class _MonstersListPageState extends State<MonstersListPage> {
               ),
 
               // Estadísticas
-              if (provider.selectedEdition != 'Todas' ||
-                  provider.showOnlyFavorites)
+              if (provider.selectedEdition != 'Todas' || provider.showOnlyFavorites)
                 Container(
                   padding: const EdgeInsets.all(12),
                   child: Row(
@@ -198,22 +242,27 @@ class _MonstersListPageState extends State<MonstersListPage> {
     }
 
     if (provider.monsters.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.pets, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            Text(
-              'No hay monstruos',
-              style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Agrega tu primer monstruo',
-              style: TextStyle(color: Colors.grey.shade500),
-            ),
-          ],
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.pets, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text(
+                'No se encontraron monstruos.',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8),
+              Text(
+                '¡Agrega nuevos monstruos o importa desde la API!',
+                style: TextStyle(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -245,15 +294,15 @@ class _MonstersListPageState extends State<MonstersListPage> {
 
   void _shareMonster(Monster monster) {
     final text = '''
-🐉 ${monster.name}
-📚 Edición: ${monster.edition}
-${monster.type != null ? '🏷️ Tipo: ${monster.type}' : ''}
-❤️ HP: ${monster.hp}
-${monster.ac != null ? '🛡️ AC: ${monster.ac}' : ''}
+Beholder ${monster.name}
+Edición: ${monster.edition}
+${monster.type != null ? 'Tipo: ${monster.type}' : ''}
+HP: ${monster.hp}
+${monster.ac != null ? 'AC: ${monster.ac}' : ''}
 
 ${monster.description}
 
-${monster.abilities != null ? '⚔️ Habilidades:\n${monster.abilities}' : ''}
+${monster.abilities != null ? 'Habilidades:\n${monster.abilities}' : ''}
 
 ---
 Compartido desde D&D Old School Compendium

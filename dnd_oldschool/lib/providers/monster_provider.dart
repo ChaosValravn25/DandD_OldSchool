@@ -1,17 +1,19 @@
 import 'package:flutter/foundation.dart';
 import '../models/monster.dart';
 import '../services/database_helper.dart';
+import '../services/api_service.dart';
 
 /// Provider para gestionar el estado de los monstruos
 class MonsterProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
-  
+  final ApiService _api = ApiService();
   List<Monster> _monsters = [];
   List<Monster> _filteredMonsters = [];
   String _selectedEdition = 'Todas';
   bool _showOnlyFavorites = false;
   bool _isLoading = false;
   String? _error;
+  
 
   // Getters
   List<Monster> get monsters => _filteredMonsters.isEmpty ? _monsters : _filteredMonsters;
@@ -250,4 +252,66 @@ class MonsterProvider with ChangeNotifier {
     
     return buffer.toString();
   }
+
+  /// Importa monstruos desde la API oficial D&D 5e
+Future<void> importMonstersFromApi() async {
+  _isLoading = true;
+  notifyListeners();
+
+  try {
+    // 1. Obtener listado BASE
+    final listResponse = await _api.get("monsters");
+    final results = listResponse["results"] as List;
+
+    // 2. Por cada "index", obtener detalles
+    for (var m in results) {
+      final index = m["index"];
+      final detail = await _api.get("monsters/$index");
+
+      // Construir imagen URL estándar de la API
+      final imageUrl =
+          "https://www.dnd5eapi.co/api/images/monsters/$index.png";
+
+      final monster = Monster(
+        id: index,
+        name: detail["name"] ?? "Unknown",
+        edition: "5e",
+        type: detail["type"],
+        size: detail["size"],
+        hp: detail["hit_points"] ?? 1,
+        ac: detail["armor_class"] is List
+            ? detail["armor_class"][0]["value"]
+            : detail["armor_class"],
+        description: detail["desc"] != null
+            ? (detail["desc"] as List).join("\n")
+            : "No description.",
+        abilities: detail["special_abilities"] != null
+            ? detail["special_abilities"]
+                .map((a) => "${a["name"]}: ${a["desc"]}")
+                .join("\n")
+            : "",
+        imageUrl: imageUrl,
+        isFavorite: false,
+        createdAt: DateTime.now(),
+      );
+
+      // 3. Agregar a la base local
+      try {
+        await _db.createMonster(monster);
+      } catch (_) {
+        // si ya existe, lo ignoramos (no crashea)
+      }
+    }
+
+    // 4. Recargar lista local
+    await loadMonsters();
+  } catch (e) {
+    _error = "Error al importar monstruos: $e";
+  }
+
+  _isLoading = false;
+  notifyListeners();
+}
+
+
 }

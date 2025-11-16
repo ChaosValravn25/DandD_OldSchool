@@ -55,11 +55,12 @@ dependencies:
   sqflite_common_ffi: ^2.3.3
   dio: ^5.4.0  # Para descargar imágenes
   crypto: ^3.0.3  # Para generar IDs únicos
+ 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  flutter_launcher_icons: ^0.13.1
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -69,7 +70,12 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/icono_app.PNG"
+  remove_alpha_ios: true
+  min_sdk_android: 21
 # The following section is specific to Flutter packages.
 flutter:
 
@@ -78,6 +84,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  
+
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/Dungeons-and-Dragons-Logo-2000.png
@@ -85,7 +93,8 @@ flutter:
     - assets/images/Skeleton1e.png
     - assets/data/rating_questions.json
     - assets/images/placeholder_monster.png
-    - assets/default_image.png
+    - assets/images/default_image.png
+    
     
 
   # An image asset can refer to one or more resolution-specific "variants", see

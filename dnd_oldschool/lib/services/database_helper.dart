@@ -59,6 +59,7 @@ class DatabaseHelper {
         image_path TEXT,
         is_favorite $boolType,
         created_at TEXT
+        image_url TEXT
       )
     ''');
 
@@ -76,6 +77,7 @@ class DatabaseHelper {
         duration TEXT,
         description TEXT,
         is_favorite $boolType
+        created_at TEXT
       )
     ''');
 
@@ -90,6 +92,7 @@ class DatabaseHelper {
         allowed_weapons TEXT,
         allowed_armor TEXT,
         description TEXT
+
       )
     ''');
 
@@ -103,6 +106,7 @@ class DatabaseHelper {
         special_abilities TEXT,
         level_limits TEXT,
         description TEXT
+
       )
     ''');
 
@@ -118,6 +122,7 @@ class DatabaseHelper {
         damage TEXT,
         ac_bonus INTEGER,
         description TEXT
+
       )
     ''');
 
@@ -132,6 +137,7 @@ class DatabaseHelper {
         description TEXT,
         key_features TEXT,
         image_path TEXT
+
       )
     ''');
 
@@ -144,6 +150,7 @@ class DatabaseHelper {
         title $textType,
         description TEXT,
         page_reference TEXT
+
       )
     ''');
 
@@ -155,6 +162,7 @@ class DatabaseHelper {
         entity_id TEXT,
         note TEXT,
         created_at TEXT
+        
       )
     ''');
   }
